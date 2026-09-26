@@ -6977,25 +6977,27 @@ function ContextChip({ info }: { info: { tokens: number; window: number | null; 
   const compaction = useCompactionConfig()
   if (!info) return null
   const windowTokens = info.window
-  const frac = windowTokens ? Math.min(1, info.tokens / windowTokens) : null
+  // The dial is ALWAYS drawn — a known window scales it to the model's
+  // real capacity; an unknown one scales to the 120k dumb-zone mark, so
+  // the gauge still shows position (and warns at 100%). Nothing about
+  // "unknown" hides the graphic; it only changes what 100% means.
+  const scale = windowTokens ?? DUMB_ZONE_TOKENS
+  const frac = Math.min(1, info.tokens / scale)
   // Absolute compaction threshold (pure token value, no window fraction).
-  const trigger =
-    windowTokens && compaction.enabled && compaction.trigger_tokens > 0
-      ? compaction.trigger_tokens
-      : null
-  const triggerFrac = trigger !== null && windowTokens ? Math.min(1, trigger / windowTokens) : null
-  const dumbFrac = windowTokens ? DUMB_ZONE_TOKENS / windowTokens : null
-  // The dumb-zone tick only exists when the window is larger than 120k; a
-  // smaller window passes through the zone on its way to full.
-  const dumbVisible = dumbFrac !== null && dumbFrac < 1
+  const trigger = compaction.enabled && compaction.trigger_tokens > 0 ? compaction.trigger_tokens : null
+  const triggerFrac = trigger !== null ? Math.min(1, trigger / scale) : null
+  const dumbFrac = DUMB_ZONE_TOKENS / scale
+  // With a known window smaller than 120k the zone tick lands past full —
+  // drop it (the whole dial is the zone; fill color goes red on its own).
+  const dumbVisible = dumbFrac < 1
   const fill = contextDialColor(info.tokens, trigger, dumbVisible)
-  const pct = frac !== null ? ` (${Math.round((frac as number) * 100)}%)` : ''
+  const pct = windowTokens ? ` (${Math.round((info.tokens / windowTokens) * 100)}% of window)` : ''
   const dumbLine =
-    dumbFrac !== null && windowTokens
+    windowTokens
       ? windowTokens > DUMB_ZONE_TOKENS
         ? `dumb zone from ${fmtTok(DUMB_ZONE_TOKENS)} (${Math.round(dumbFrac * 100)}%)`
         : `whole dial is dumb zone (window < ${fmtTok(DUMB_ZONE_TOKENS)})`
-      : 'dumb zone unmarked (window unknown)'
+      : `dumb zone at full dial (window unknown — scale is ${fmtTok(DUMB_ZONE_TOKENS)} tok)`
   // Arc geometry: a 24x24 viewBox dial, ring from 12 o'clock clockwise.
   const r = 8.5
   const c = 2 * Math.PI * r
@@ -7020,7 +7022,10 @@ function ContextChip({ info }: { info: { tokens: number; window: number | null; 
                 : 'compaction off',
               dumbLine,
             ].join('\n')
-          : `${info.tokens.toLocaleString()} tokens (unknown context window — set an override in Settings)`
+          : [
+              `${info.tokens.toLocaleString()} tokens (unknown context window — set an override in Settings)`,
+              dumbLine,
+            ].join('\n')
       }
     >
       {frac !== null && (
