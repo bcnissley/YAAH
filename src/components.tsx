@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import {
   listConversations,
   createConversation,
@@ -107,6 +107,7 @@ import { useStickToBottom } from './useStickToBottom'
 import { classifyDrop } from './dropFiles'
 import { parseModelScope } from './modelScope'
 import { sortWorkspaceGroups } from './workspaceGroupOrder'
+import { extractValidTokens, menuQuery, completeToken, deriveInvokedSkills, LEADING_SLASH_RE, type TokenSpan } from './skillTokens'
 
 // ---------------------------------------------------------------- code views
 
@@ -7940,6 +7941,16 @@ function Composer() {
     return s.pendingPlanApprovals[key] ?? null
   })
   const [input, setInput] = useState('')
+  // Inline skill-token chips (#105 design): every valid $name token in the
+  // composer text renders as an indigo chip painted OVER the token — the
+  // text stays real underneath (the model receives it verbatim) and the
+  // overlay is pointer-events:none so editing is untouched. Text is the
+  // source of truth: per keystroke the token spans are re-derived, so
+  // deleting the token removes its chip (Q4/Q5/Q7: no inline ×, removal =
+  // backspace). Rects are measured with a canvas mirror of the textarea's
+  // metrics (see the measure effect below).
+  const [tokenRects, setTokenRects] = useState<Array<{ span: TokenSpan; left: number; top: number; width: number; height: number }>>([])
+  const skillOverlayCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const [sending, setSending] = useState(false)
   // Issue #7 queue: echoes of messages queued during this run (transcript
   // rows marked queued) + pill open state + steer-in-flight flag.
@@ -7984,7 +7995,6 @@ function Composer() {
   // a skill solely on this explicit selection; otherwise Enter sends the
   // literal text — typing a message that starts with "/" stays possible.
   const [skillNavigated, setSkillNavigated] = useState(false)
-  const [pickedSkills, setPickedSkills] = useState<SkillInfo[]>([])
   /** Which character opened the menu: '/' adds a chip, '$' completes inline. */
   const [skillTrigger, setSkillTrigger] = useState<'/' | '$'>('/')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -8437,14 +8447,6 @@ function Composer() {
   // same menu serves "$": the query is the unfinished $name at the very end
   // of the input; picking one adds a chip and strips the token, same as /.
   useEffect(() => {
-    if (input === '/') {
-      setSkillMenuOpen(true)
-      setSkillTrigger('/')
-      setSkillQuery('')
-      setSkillIndex(0)
-      setSkillNavigated(false)
-      return
-    }
     if (input.startsWith('/')) {
       setSkillMenuOpen(true)
       setSkillTrigger('/')
@@ -8469,27 +8471,100 @@ function Composer() {
     skillQuery ? s.name.toLowerCase().startsWith(skillQuery.toLowerCase()) : true,
   )
 
-  const pickSkill = (s: SkillInfo) => {
-    if (skillTrigger === '$') {
-      // $ picks a chip too — but the literal $name stays in the text (#105):
-      // the chip carries the invocation while the message keeps its in-context
-      // wording ("if i wanted to $handoff something"). The send path dedupes
-      // chip names against the $-scan, so the skill loads exactly once.
-      setPickedSkills((p) => (p.some((x) => x.name === s.name) ? p : [...p, s]))
-      setSkillMenuOpen(false)
-      setSkillNavigated(false)
-      textareaRef.current?.focus()
+  const knownSkillNamesSet = useMemo(() => new Set(skills.map((s) => s.name)), [skills])
+  const activeTokens = useMemo(() => extractValidTokens(input, knownSkillNamesSet), [input, knownSkillNamesSet])
+
+  // Measure each token's pixel rect for the chip overlay. A canvas set to
+  // the textarea's computed font (and its content-box width for wrapping)
+  // mirrors where the browser lays the token: find the line containing the
+  // token start, wrap-measure up to it, and take the run's width. Runs on
+  // every input change (Q5: keystroke-synced) and on resize.
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) {
+      setTokenRects([])
       return
     }
-    setPickedSkills((p) => (p.some((x) => x.name === s.name) ? p : [...p, s]))
+    if (activeTokens.length === 0) {
+      setTokenRects([])
+      return
+    }
+    const cs = window.getComputedStyle(el)
+    const canvas = (skillOverlayCanvasRef.current ??= document.createElement('canvas'))
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+    const lineHeight = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.5
+    const padX = parseFloat(cs.paddingLeft)
+    const padTop = parseFloat(cs.paddingTop)
+    const wrapWidth = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+    const measure = (text: string) => ctx.measureText(text).width
+    const rects: Array<{ span: TokenSpan; left: number; top: number; width: number; height: number }> = []
+    for (const span of activeTokens) {
+      const before = input.slice(0, span.start)
+      const token = input.slice(span.start, span.end)
+      const lines = before.split('\n')
+      const lastLine = lines[lines.length - 1]
+      const lineIdxBefore = lines.length - 1
+      // Wrap-walk the last line of `before` to find the token's line + x.
+      let x = 0
+      let line = lineIdxBefore
+      for (const word of lastLine.split(/ /)) {
+        const w = measure(word === '' ? ' ' : word)
+        const space = measure(' ')
+        if (x > 0 && x + w > wrapWidth) {
+          line += 1
+          x = 0
+        }
+        x += w + space
+      }
+      x = Math.max(0, x - measure(' '))
+      // The token itself may wrap; measure its widest single line.
+      let tw = 0
+      for (const part of token.split(/ /)) tw = Math.max(tw, measure(part))
+      const h = lineHeight
+      // The token may span 2 wrapped lines; clamp visually with the simple
+      // single-line rect (tokens are short — skill names).
+      rects.push({ span, left: padX + x, top: padTop + line * h, width: Math.min(tw, wrapWidth), height: h })
+    }
+    setTokenRects(rects)
+  }, [input, activeTokens])
+
+  const pickSkill = (s: SkillInfo) => {
+    // Unified token flow (#105 follow-up): both triggers complete the token
+    // IN the text — canonical `$name ` with a trailing space. `$` replaces
+    // just the typed partial; `/` (start-of-input gesture) rewrites the
+    // whole leading token. The chip rendering is derived from the text by
+    // the overlay, so no separate picked-skills state exists anymore.
+    const mq = menuQuery(input)
+    if (mq) {
+      setInput(completeToken(input, mq, s.name))
+      // Keep caret after the inserted token (textarea auto-grows on change).
+      requestAnimationFrame(() => {
+        const el = textareaRef.current
+        if (!el) return
+        const caret = mq.trigger === '/' ? s.name.length + 2 : mq.tokenStart + s.name.length + 2
+        el.focus()
+        el.setSelectionRange(caret, caret)
+      })
+    }
     setSkillMenuOpen(false)
     setSkillNavigated(false)
-    setInput('')
-    textareaRef.current?.focus()
   }
 
-  const removeSkill = (name: string) =>
-    setPickedSkills((p) => p.filter((s) => s.name !== name))
+  // Raw "/name" + Enter auto-invokes a matching skill (Q17/Q18): the
+  // literal typed text sends and deriveInvokedSkills picks up the leading
+  // slash token, so the model gets chip + text. Only when nothing else is
+  // staged — the PTT-style send bypasses attachments/images. Unknown
+  // names fall through to a literal send (Q19).
+  const sendRawSlashInvocation = (): boolean => {
+    const m = LEADING_SLASH_RE.exec(input.trim())
+    if (!m || !knownSkillNamesSet.has(m[1])) return false
+    if (attachments.length > 0 || images.length > 0) return false
+    void send(input.trim())
+    setInput('')
+    return true
+  }
 
   const addImageFile = (f: File) => {
     if (!f.type.startsWith('image/')) {
@@ -9005,31 +9080,20 @@ function Composer() {
       }
     }
     const imageDataUrls = opts?.images ?? images.map((i) => i.dataUrl)
-    // $name anywhere in the prompt loads the skill for this turn (unknown
-    // names are literal text; the message is sent exactly as written). Menu
-    // picks — / or $ — become chips; this scan is the fallback for hand-typed
-    // $names that never went through the menu. All merge into one list.
+    // Skill invocations derive entirely from the message text (#105 design):
+    // every valid $name token (plus a whole-message leading /name) invokes,
+    // unknown names stay literal text, and the token text rides in the body
+    // verbatim so the model sees the in-context usage. Menu chips are just
+    // the rendered view of these tokens — there is no separate chip list.
     const knownSkillNames = new Set(skills.map((s) => s.name))
-    const dollarNames: string[] = []
-    for (const m of fullText.matchAll(/\$([A-Za-z0-9_-]+)/g)) {
-      const name = m[1]
-      if (
-        knownSkillNames.has(name) &&
-        !pickedSkills.some((s) => s.name === name) &&
-        !dollarNames.includes(name)
-      ) {
-        dollarNames.push(name)
-      }
-    }
-    const invokedSkills = opts?.skills ?? [...pickedSkills.map((s) => s.name), ...dollarNames]
+    const invokedSkills = opts?.skills ?? deriveInvokedSkills(fullText, knownSkillNames)
     // Captured draft: if the turn fails before the agent answers, the
     // composer gets it back — a failed send must not cost the prompt.
-    const draft = { input, attachments, images, pickedSkills }
+    const draft = { input, attachments, images }
     if (!isPtt && !handedOffPayload) {
       setInput('')
       setAttachments([])
       setImages([])
-      setPickedSkills([])
     }
     // Capture the turn's target buffer now: everything this turn writes —
     // optimistic messages, stream deltas, tool traces — goes there, even if
@@ -9115,7 +9179,6 @@ function Composer() {
           setInput(isPtt ? (draft.input ? `${draft.input.trimEnd()} ${text}` : text) : draft.input)
           setAttachments(draft.attachments)
           setImages(draft.images)
-          setPickedSkills(draft.pickedSkills)
         }
         setStatus(bufKey, 'error')
         setSendError(
@@ -9211,12 +9274,9 @@ function Composer() {
     const text = messageOverride ?? input.trim()
     if ((!text && (fromComposer ? attachments.length === 0 && images.length === 0 : true)) || targetConversationId === null) return false
     const fullText = text + (fromComposer ? attachments.map(attachmentText).join('') : '')
-    const skillNames = fromComposer ? [...pickedSkills.map((s) => s.name)] : []
-    for (const match of fullText.matchAll(/\$([A-Za-z0-9_-]+)/g)) {
-      if (fromComposer && skills.some((skill) => skill.name === match[1]) && !skillNames.includes(match[1])) {
-        skillNames.push(match[1])
-      }
-    }
+    const skillNames = fromComposer
+      ? deriveInvokedSkills(fullText, new Set(skills.map((s) => s.name)))
+      : []
     if (fromComposer && images.length > 4) {
       useAgent.getState().pushToast({
         kind: 'error',
@@ -9245,7 +9305,6 @@ function Composer() {
         setInput('')
         setImages([])
         setAttachments([])
-        setPickedSkills([])
       }
       return true
     } catch (e) {
@@ -9434,25 +9493,6 @@ function Composer() {
             ))}
           </div>
         )}
-        {pickedSkills.length > 0 && (
-          <div className="flex flex-wrap gap-1 px-3 pt-3">
-            {pickedSkills.map((s) => (
-              <span
-                key={s.name}
-                title={s.description || s.path}
-                className="flex items-center gap-1 rounded bg-indigo-900/60 px-2 py-0.5 font-mono text-[10px] text-indigo-200"
-              >
-                /{s.name}
-                <button
-                  className="text-indigo-400 hover:text-red-400"
-                  onClick={() => removeSkill(s.name)}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
         {rejects.length > 0 && (
           <div className="space-y-1 px-3 pt-3" aria-live="polite">
             {rejects.map((msg, i) => (
@@ -9502,6 +9542,20 @@ function Composer() {
             </button>
           </div>
         )}
+        <div className="relative">
+        {/* Chip overlay for inline skill tokens — pointer-events:none so the
+            textarea receives every click/keystroke (Q12); the translucent
+            indigo paint sits OVER the token text, which stays visible and
+            editable underneath. aria-hidden: decorative, the text IS the
+            content. */}
+        {tokenRects.map(({ span, left, top, width, height }) => (
+          <div
+            key={`${span.start}-${span.name}`}
+            aria-hidden
+            className="pointer-events-none absolute rounded bg-indigo-900/60"
+            style={{ left, top, width, height, border: '1px solid rgba(129,140,248,0.35)' }}
+          />
+        ))}
         <textarea
           ref={textareaRef}
           className="block w-full resize-none bg-transparent px-3 py-2 text-sm text-zinc-100 focus:outline-none"
@@ -9554,11 +9608,15 @@ function Composer() {
               if (e.key === 'Enter') {
                 e.preventDefault()
                 // Enter commits only an explicitly selected row; with no
-                // selection it closes the menu so the literal text sends.
+                // selection it closes the menu so the literal text sends —
+                // except a raw whole-message "/name" matching a skill,
+                // which auto-invokes (Q17): same send path a menu pick
+                // would take, with the typed text kept verbatim.
                 if (skillNavigated) {
                   pickSkill(filteredSkills[skillIndex] ?? filteredSkills[0])
                 } else {
                   setSkillMenuOpen(false)
+                  if (sendRawSlashInvocation()) return
                   if (streaming && conversationId !== null) {
                     if (!pendingQuestion && !pendingApproval && !pendingPlanApproval) void steerInput()
                   } else {
@@ -9575,6 +9633,10 @@ function Composer() {
             }
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault()
+              // Raw whole-message "/name" auto-invokes a matching skill
+              // even when the menu already closed (Esc) — same contract as
+              // the menu branch above (Q17).
+              if (!streaming && sendRawSlashInvocation()) return
               if (streaming && conversationId !== null) {
                 if (!pendingQuestion && !pendingApproval && !pendingPlanApproval) void steerInput()
                 return
@@ -9583,6 +9645,7 @@ function Composer() {
             }
           }}
         />
+        </div>
         <input
           ref={fileInputRef}
           type="file"
