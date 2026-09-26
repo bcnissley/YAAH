@@ -7883,24 +7883,6 @@ const attachmentText = (a: Attachment): string => {
   return `\n\n--- attached file: ${a.name} (${kb} KB) ---\nSaved to ${a.savedPath} in the workspace. Read it with read_file (use offset/limit for large files).`
 }
 
-/** Execution is selected by each chat workspace, not by a global host toggle. */
-function HostSwitcher({ disabled }: { disabled: boolean }) {
-  return (
-    <div
-      className="flex items-center gap-1.5 rounded px-2 py-1.5 text-xs text-zinc-400"
-      title="Workspace selection determines where workspace tools run. Local paths always stay on this device."
-      aria-label="Workspace-bound execution target"
-    >
-      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
-        <rect x="2" y="2.5" width="10" height="4" rx="1" />
-        <rect x="2" y="8.5" width="10" height="4" rx="1" />
-      </svg>
-      Workspace target
-      {disabled && <span className="sr-only">A conversation is running.</span>}
-    </div>
-  )
-}
-
 function Composer() {
   const {
     conversationId,
@@ -9591,11 +9573,6 @@ function Composer() {
                 return
               }
             }
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && streaming && conversationId !== null) {
-              e.preventDefault()
-              if (!pendingQuestion && !pendingApproval && !pendingPlanApproval) void queueInput()
-              return
-            }
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault()
               if (streaming && conversationId !== null) {
@@ -9664,7 +9641,6 @@ function Composer() {
         {/* Unified toolbar: host + mode on the left, attach/mic/send on the
             right — one hairline-separated row inside the composer card. */}
         <div className="flex items-center gap-1 border-t border-zinc-800/70 px-1.5 py-1.5">
-          <HostSwitcher disabled={streaming || sending} />
           <AccessModeControl />
           <div className="ml-auto flex items-center gap-1">
             <button
@@ -9729,23 +9705,14 @@ function Composer() {
                 )}
               </button>
             )}
-            {streaming && conversationId !== null ? (
+            {streaming || sendingKey === (conversationId === null ? 'draft' : String(conversationId)) ? (
               <>
                 <button
-                  className="rounded border border-amber-700 px-2.5 py-1.5 text-sm text-amber-200 hover:bg-amber-950 disabled:opacity-40"
-                  title="Interrupt the current step and inject this message now"
-                  disabled={Boolean(pendingQuestion || pendingApproval || pendingPlanApproval || (!input.trim() && !attachments.length && !images.length))}
-                  onClick={() => void steerInput()}
+                  className="rounded bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-500 disabled:opacity-50"
+                  onClick={() => void send()}
+                  disabled={!input.trim() && attachments.length === 0 && images.length === 0}
                 >
-                  Steer
-                </button>
-                <button
-                  className="rounded border border-zinc-600 px-2.5 py-1.5 text-sm text-zinc-200 hover:bg-zinc-800 disabled:opacity-40"
-                  title="Queue until the next natural boundary (Ctrl/Cmd+Enter)"
-                  disabled={Boolean(pendingQuestion || pendingApproval || pendingPlanApproval || (!input.trim() && !attachments.length && !images.length))}
-                  onClick={() => void queueInput()}
-                >
-                  Queue
+                  Send
                 </button>
                 <button
                   className="rounded border border-red-700 px-3 py-1.5 text-sm text-red-300 hover:bg-red-950"
@@ -9754,13 +9721,6 @@ function Composer() {
                   Stop
                 </button>
               </>
-            ) : streaming || sendingKey === (conversationId === null ? 'draft' : String(conversationId)) ? (
-              <button
-                className="rounded border border-red-700 px-3 py-1.5 text-sm text-red-300 hover:bg-red-950"
-                onClick={stop}
-              >
-                Stop
-              </button>
             ) : (
               <button
                 className="rounded bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-500 disabled:opacity-50"
