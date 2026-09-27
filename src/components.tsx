@@ -6943,6 +6943,16 @@ function contextDialColor(
   return '#10b981' // emerald-500
 }
 
+/** Stepped color for the token-count text next to the dial — distinct
+ *  bands, no gradient: blue (send-button blue) under 90k, yellow past
+ *  100k, orange past 120k (the dumb zone), red past 200k. */
+function tokenCountColor(tokens: number): string {
+  if (tokens >= 200_000) return 'text-red-500'
+  if (tokens >= DUMB_ZONE_TOKENS) return 'text-orange-500'
+  if (tokens >= 100_000) return 'text-yellow-500'
+  return 'text-blue-600'
+}
+
 /** One tick on the dial rim: a short radial line just outside the ring,
  *  pointing at the angle its threshold sits at. */
 function DialTick({ frac, color }: { frac: number; color: string }) {
@@ -7053,7 +7063,7 @@ function ContextChip({ info }: { info: { tokens: number; window: number | null; 
           </text>
         </svg>
       )}
-      <span>
+      <span className={tokenCountColor(info.tokens)}>
         {fmtTok(info.tokens)}
         {windowTokens ? ` / ${fmtTok(windowTokens)}` : ''} tok
       </span>
