@@ -56,6 +56,18 @@ Follow the /triage discipline:
   exactly what's missing (repro steps, environment, expected vs actual
   behavior). Apply `needs-info` (removing `needs-triage`). Do not ask
   anything you could have looked up yourself.
+
+  **Questionnaire format** (one comment on the issue):
+  - Numbered questions, each asking for a specific free-text answer (what,
+    where, what you saw). "Reply in a single comment with your answers
+    numbered the same way."
+  - Checkboxes (`- [ ]`) ONLY for yes/no gates the reporter can confirm:
+    e.g. `- [ ] I can reproduce this on the latest commit`,
+    `- [ ] Logs/screenshots attached`.
+  - The reporter's single reply comment is the source of truth — the
+    needs-info agent parses THAT comment for the answers, not this one.
+  - Keep it short: every question must map to a decision you'd otherwise
+    guess at. If a question wouldn't change the triage outcome, cut it.
 - **Duplicate / out of scope / by design** → `wontfix`, close with a comment
   explaining why and linking the duplicate.
 
