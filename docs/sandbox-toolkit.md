@@ -103,6 +103,27 @@ boot overwrites it, and — by default — one transparent reboot is attempted
 via `sandbox_test`. The result carries `crashed: true` and a `reboot` note;
 run the command again after a successful reboot.
 
+## Recovery drill (agent-facing quick reference)
+
+Standard drill when sandbox/backend verification churns:
+
+- **Backend port is fixed at `8765`** (`API_PORT` in `backend/main.py`).
+  There is no dynamic binding or retry; if something else holds the port,
+  the backend fails to start rather than drifting to another port.
+- **Crashed sandbox VM** → the error names the crash class
+  (`0x80072746`), one transparent auto-reboot fires
+  (`auto_reboot_on_crash`, default on), then re-run the failed
+  `sandbox_run` command. If auto-reboot is disabled or fails, call
+  `sandbox_test` again manually.
+- **Hung backend (in the VM or on the host)** → kill and restart:
+  `taskkill /IM uvicorn.exe /F` (and/or `taskkill /IM python.exe /F`
+  inside the VM), then relaunch the backend. The port frees on process
+  death since binding is fixed-port.
+- **mDNS advertising failures / empty mDNS error at startup** → set
+  `YAAH_NO_HOSTING=1` to skip advertising entirely; the backend still
+  runs and is reachable by direct IP:port. (Advertising is best-effort
+  and never fatal; failures log the exception repr since the #104 fix.)
+
 ## When the Windows feature is missing
 
 `sandbox_test` returns error text the model relays to the user: check with

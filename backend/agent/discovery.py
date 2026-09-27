@@ -96,7 +96,7 @@ def start_advertising(port: int) -> None:
             zc.register_service(info, ttl=None)
             _zc, _info = zc, info
         except Exception as e:  # noqa: BLE001 — advertising is best-effort
-            log.warning("mDNS advertising failed: %s", e)
+            log.warning("mDNS advertising failed: %r", e)
 
 
 def stop_advertising() -> None:
@@ -164,7 +164,7 @@ def browse(seconds: float = 2.5) -> list[dict]:
 
         time.sleep(max(0.5, seconds))
     except Exception as e:  # noqa: BLE001
-        log.warning("mDNS browse failed: %s", e)
+        log.warning("mDNS browse failed: %r", e)
     finally:
         if zc is not None:
             try:
