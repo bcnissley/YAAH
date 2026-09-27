@@ -351,8 +351,10 @@ HELP_DOCS: dict = {
     "git_push": (
         "Pushes a branch; specify target=current for the active session tree "
         "or target=main only for an explicit primary-branch request. Never "
-        "force-push. Main-target pushes require a clean primary checkout, "
-        "a non-agent branch, and a configured upstream."
+        "force-push. Main-target pushes require a clean primary checkout and "
+        "a non-agent branch; a primary branch with no upstream is published "
+        "with --set-upstream (tracking established proactively). Session "
+        "agent/* branches are never auto-published."
     ),
     "git_merge_back": (
         "Integrates completed requested work into the main workspace. "
@@ -797,8 +799,10 @@ TOOLS_SCHEMA += [
             "description": (
                 "Pushes a branch; specify target=current or target=main. Use main "
                 "only for an explicit primary-branch request; never force-push. "
-                "Main-target push requires a clean primary checkout, a non-agent "
-                "branch, and a configured upstream."
+                "Main-target push requires a clean primary checkout and a non-agent "
+                "branch; if the branch has no upstream it is published with "
+                "--set-upstream (tracking established). agent/* branches are "
+                "never auto-published."
             ),
             "parameters": {
                 "type": "object",
@@ -1524,7 +1528,9 @@ async def git_merge_back(workspace: str, branch: str = "") -> dict:
     return await wt.merge_back(real, branch.strip())
 
 
-async def _verify_primary_sync_target(workspace: str, operation: str) -> dict | None:
+async def _verify_primary_sync_target(
+    workspace: str, operation: str, require_upstream: bool = True
+) -> dict | None:
     status = await _git(workspace, "status", "--porcelain")
     if status.get("exit_code") != 0:
         return {
@@ -1549,16 +1555,17 @@ async def _verify_primary_sync_target(workspace: str, operation: str) -> dict | 
                 f"{branch_name or '(unknown)'}"
             )
         }
-    upstream = await _git(
-        workspace, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"
-    )
-    if upstream.get("exit_code") != 0:
-        return {
-            "error": (
-                "primary checkout branch has no upstream; "
-                f"refusing to guess a remote for {operation}"
-            )
-        }
+    if require_upstream:
+        upstream = await _git(
+            workspace, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"
+        )
+        if upstream.get("exit_code") != 0:
+            return {
+                "error": (
+                    "primary checkout branch has no upstream; "
+                    f"refusing to guess a remote for {operation}"
+                )
+            }
     return None
 
 
@@ -1569,10 +1576,33 @@ async def git_push(workspace: str, target: str) -> dict:
         return selected
     workspace = selected
     if target == "main":
-        refusal = await _verify_primary_sync_target(workspace, "push")
+        # The primary checkout holds the user's durable branches: a first
+        # publish establishes tracking proactively (no error-string
+        # recovery), instead of refusing to guess a remote (issue #114).
+        refusal = await _verify_primary_sync_target(
+            workspace, "push", require_upstream=False
+        )
         if refusal:
             return refusal
-        return await _git(workspace, "push")
+        upstream = await _git(
+            workspace, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"
+        )
+        if upstream.get("exit_code") == 0:
+            return await _git(workspace, "push")
+        branch = await _git(workspace, "rev-parse", "--abbrev-ref", "HEAD")
+        branch_name = str(branch.get("output") or "").strip()
+        if branch.get("exit_code") != 0 or not branch_name:
+            return branch
+        pushed = await _git(workspace, "push", "--set-upstream", "origin", branch_name)
+        if pushed.get("exit_code") == 0:
+            pushed["upstream_established"] = True
+            pushed["note"] = (
+                f"upstream established: {branch_name} now tracks origin/{branch_name}"
+            )
+        return pushed
+    # Session worktrees / agent/* branches: no proactive publish. The
+    # upstream fallback below runs only on an explicit git failure, so a
+    # temporary agent branch is never silently published to origin.
     r = await _git(workspace, "push")
     if r.get("exit_code") == 0:
         return r
@@ -1585,6 +1615,7 @@ async def git_push(workspace: str, target: str) -> dict:
         return r
     pushed = await _git(workspace, "push", "--set-upstream", "origin", branch_name)
     if pushed.get("exit_code") == 0:
+        pushed["upstream_established"] = True
         pushed["note"] = f"no upstream was configured; published {branch_name} to origin with --set-upstream"
     return pushed
 

@@ -880,6 +880,98 @@ async def test_reaper_never_prunes_unmerged_branches(repo: Path, monkeypatch):
     assert "feature.txt" not in _git(repo, "show", f"{info['branch']}:feature.txt") or True
 
 
+def test_git_push_main_establishes_upstream_on_first_publish(repo: Path, monkeypatch):
+    """Issue #114: a primary-checkout branch with no upstream is published
+    proactively with --set-upstream in one call - no failed bare push first,
+    no error-string matching, and a structured upstream_established flag."""
+    from backend.agent import tools as tools_mod
+
+    calls: list[tuple] = []
+    main = repo / "primary"
+    main.mkdir()
+
+    async def fake_root(_workspace):
+        return main
+
+    async def fake_git(_workspace, *args, **_kw):
+        calls.append(args)
+        if args == ("status", "--porcelain"):
+            return {"output": "", "exit_code": 0}
+        if args == ("rev-parse", "--abbrev-ref", "HEAD"):
+            return {"output": "dev", "exit_code": 0}
+        if args == ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+            return {"error": "fatal: no upstream configured", "exit_code": 128}
+        return {"output": "pushed", "exit_code": 0}
+
+    monkeypatch.setattr(worktrees, "main_repo_root", fake_root)
+    monkeypatch.setattr(tools_mod, "_git", fake_git)
+    result = asyncio.run(tools_mod.git_push(str(repo / ".yaah" / "worktrees" / "chat"), target="main"))
+    assert result["exit_code"] == 0
+    assert result["upstream_established"] is True
+    assert calls == [
+        ("status", "--porcelain"),
+        ("rev-parse", "--abbrev-ref", "HEAD"),
+        ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"),
+        ("rev-parse", "--abbrev-ref", "HEAD"),
+        ("push", "--set-upstream", "origin", "dev"),
+    ]
+
+
+def test_git_push_main_with_upstream_bare_push(repo: Path, monkeypatch):
+    """A primary branch that already tracks pushes bare - no set-upstream."""
+    from backend.agent import tools as tools_mod
+
+    calls: list[tuple] = []
+    main = repo / "primary"
+    main.mkdir()
+
+    async def fake_root(_workspace):
+        return main
+
+    async def fake_git(_workspace, *args, **_kw):
+        calls.append(args)
+        if args == ("status", "--porcelain"):
+            return {"output": "", "exit_code": 0}
+        if args == ("rev-parse", "--abbrev-ref", "HEAD"):
+            return {"output": "main", "exit_code": 0}
+        if args == ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+            return {"output": "origin/main", "exit_code": 0}
+        return {"output": "pushed", "exit_code": 0}
+
+    monkeypatch.setattr(worktrees, "main_repo_root", fake_root)
+    monkeypatch.setattr(tools_mod, "_git", fake_git)
+    result = asyncio.run(tools_mod.git_push(str(repo / ".yaah" / "worktrees" / "chat"), target="main"))
+    assert result["exit_code"] == 0
+    assert "upstream_established" not in result
+    assert calls[-1] == ("push",)
+
+
+def test_git_push_agent_branch_without_upstream_not_silently_published(repo: Path, monkeypatch):
+    """Guardrail: an agent/* session branch push must never proactively
+    publish - it only retries after git itself reported a missing upstream
+    (the explicit-intent fallback), and never before any push attempt."""
+    from backend.agent import tools as tools_mod
+
+    calls: list[tuple] = []
+
+    async def fake_git(_workspace, *args, **_kw):
+        calls.append(args)
+        if args == ("rev-parse", "--abbrev-ref", "HEAD"):
+            return {"output": "agent/388/x", "exit_code": 0}
+        if args == ("push",):
+            return {"error": "fatal: The current branch has no upstream branch.", "exit_code": 128}
+        return {"output": "pushed", "exit_code": 0}
+
+    monkeypatch.setattr(tools_mod, "_git", fake_git)
+    result = asyncio.run(tools_mod.git_push(str(repo), target="current"))
+    assert result["exit_code"] == 0
+    assert result["upstream_established"] is True
+    # First contact with the remote is the failing bare push, not a
+    # proactive --set-upstream publish.
+    assert calls[0] == ("push",)
+    assert calls[-1] == ("push", "--set-upstream", "origin", "agent/388/x")
+
+
 def test_git_push_sets_upstream_when_missing(repo: Path, monkeypatch):
     """A branch with no upstream (the norm for an agent/* session branch)
     is published with --set-upstream and reported — not a silent misfire."""
