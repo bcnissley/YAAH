@@ -165,7 +165,7 @@ function AskOptionRow({
       onClick={onClick}
     >
       <span className="font-medium">{label}</span>
-      {description && <span className="block text-[11px] text-zinc-400">{description}</span>}
+      {description && <span className="block text-[11px] leading-4 text-zinc-400 line-clamp-2">{description}</span>}
     </button>
   )
 }
@@ -329,8 +329,10 @@ function AskUserCard({ pending }: { pending: PendingQuestion }) {
       <div className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-orange-400">
         <span className="run-pulse">?</span> agent asks — pick an answer
       </div>
-      <p className="mb-2.5 whitespace-pre-wrap text-sm text-zinc-100">{pending.question}</p>
-      <div className="space-y-1.5">
+      {/* #113: the question text renders in the transcript (see the mount
+          site) so a long question scrolls away instead of pushing these
+          controls off-screen. Only the answer affordances live here. */}
+      <div className="max-h-[40vh] space-y-1.5 overflow-y-auto">
         {pending.options.map((o, i) => (
           <AskOptionRow
             key={i}
@@ -7746,6 +7748,17 @@ export function ChatPanel() {
         {messages.map((m) => (
           <MessageView key={m.id} msg={m} live={m.id === liveId} />
         ))}
+        {pendingQuestion && (
+          <div className="rounded border border-orange-800/60 bg-orange-950/20 px-3 py-2">
+            <div className="mb-1.5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-orange-400">
+              <span className="run-pulse">?</span> agent asks
+            </div>
+            {/* #113: the question renders inside the scrollable transcript
+                so a multi-screen question scrolls away with the chat instead
+                of pushing the pinned answer controls off-screen. */}
+            <p className="whitespace-pre-wrap text-sm text-zinc-100">{pendingQuestion.question}</p>
+          </div>
+        )}
       </div>
       {error && (
         <div className="  border-red-900 bg-red-950/60 px-4 py-2 text-xs text-red-300">
@@ -7754,8 +7767,10 @@ export function ChatPanel() {
       )}
       {pendingQuestion && (
         <div className="  border-orange-800/60 px-4 pb-3 pt-3">
-          {/* key: each question mounts a FRESH card. Without it React reuses
-              the instance across consecutive questions and any stuck local
+          {/* #113 + key: the question text itself lives in the transcript
+              (above); only the answer affordances render here. key: each
+              question mounts a FRESH card — without it React reuses the
+              instance across consecutive questions and any stuck local
               state (submitting, custom text) wedges every later ask. */}
           <AskUserCard key={pendingQuestion.callId} pending={pendingQuestion} />
         </div>
