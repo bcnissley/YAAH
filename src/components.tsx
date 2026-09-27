@@ -1,3 +1,4 @@
+import { VizAdapter, VizMesh, vizRegistry } from './viz';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import {
   listConversations,
@@ -7628,6 +7629,7 @@ export function ChatScopePickers() {
 
 export function ChatPanel() {
   const conversationId = useAgent((s) => s.conversationId)
+  const [vizView, setVizView] = useState<'chat' | 'mesh'>('chat');
   const messages = useAgent(
     (s) => s.messagesByConv[s.conversationId === null ? 'draft' : String(s.conversationId)] ?? [],
   )
@@ -7856,6 +7858,29 @@ export function ChatPanel() {
     <main className="flex min-w-0 flex-1 flex-col">
       {/* #51/#76: per-chat model + effort pickers — the chat's own scope. */}
       <ChatScopePickers />
+      {/* Turn-mesh visualizer tab */}
+<div className="flex items-center gap-1 border-b border-zinc-800 px-4 pt-1">
+  {(['chat', 'mesh'] as const).map((v) => (
+    <button
+      key={v}
+      onClick={() => setVizView(v)}
+      className={`border-b px-3 py-1.5 font-mono text-[10px] tracking-widest ${
+        vizView === v
+          ? 'border-amber-300 text-amber-300'
+          : 'border-transparent text-zinc-500 hover:text-zinc-300'
+      }`}
+    >
+      {v === 'chat' ? 'CHAT' : 'MESH'}
+    </button>
+  ))}
+</div>
+
+{vizView === 'mesh' && conversationId !== null && vizRegistry.get(String(conversationId)) ? (
+  <div className="min-w-0 flex-1 overflow-hidden">
+    <VizMesh adapter={vizRegistry.get(String(conversationId))!} conversationId={conversationId} onDeliverableClick={() => setVizView('chat')} />
+  </div>
+) : (
+
       <div
         ref={transcriptRef}
         onScroll={onTranscriptScroll}
@@ -7904,6 +7929,8 @@ export function ChatPanel() {
           </div>
         )}
       </div>
+      )}
+
       {error && (
         <div className="  border-red-900 bg-red-950/60 px-4 py-2 text-xs text-red-300">
           {error}
@@ -9296,11 +9323,15 @@ function Composer() {
         cid = targetConversationId
       }
       setStatus(bufKey, 'thinking')
-      await streamAgentTurn(
+      const viz = new VizAdapter();
+viz.startTurn(fullText);
+vizRegistry.set(bufKey, viz);
+const handleEv = handleStreamEvent(bufKey, asstId);
+          await streamAgentTurn(
         cid,
         fullText,
         dest,
-        handleStreamEvent(bufKey, asstId),
+        (ev) => { handleEv(ev); viz.onEvent(ev); },
         ac.signal,
         imageDataUrls,
         invokedSkills,
