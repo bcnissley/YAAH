@@ -115,8 +115,8 @@ import { extractValidTokens, menuQuery, completeToken, deriveInvokedSkills, LEAD
 function DiffBlock({ oldText, newText }: { oldText: string; newText: string }) {
   const lines: DiffLine[] = diffLines(oldText, newText)
   return (
-    <div className="my-1 overflow-hidden rounded border border-zinc-800 bg-zinc-950">
-      <div className="border-b border-zinc-800 bg-zinc-900 px-2 py-1 font-mono text-[10px] text-zinc-500">
+    <div className="my-1 overflow-hidden rounded   bg-zinc-950">
+      <div className="  bg-zinc-900 px-2 py-1 font-mono text-[10px] text-zinc-500">
         diff
       </div>
       <pre className="max-h-72 overflow-auto p-1 font-mono text-[11px] leading-4">
@@ -158,10 +158,10 @@ function AskOptionRow({
 }) {
   return (
     <button
-      className={`block w-full rounded border px-2.5 py-1.5 text-left text-xs ${
+      className={`block w-full rounded   px-2.5 py-1.5 text-left text-xs ${
         chosen
           ? 'border-orange-500 bg-orange-950/40 text-orange-200'
-          : 'border-zinc-700 bg-zinc-800/60 text-zinc-200 enabled:hover:border-orange-500/60 enabled:hover:bg-zinc-800'
+          : ' bg-zinc-800/60 text-zinc-200 enabled:hover:border-orange-500/60 enabled:hover:bg-zinc-800'
       } disabled:cursor-default`}
       disabled={disabled}
       onClick={onClick}
@@ -344,7 +344,7 @@ function AskUserCard({ pending }: { pending: PendingQuestion }) {
         ))}
         {!customOpen ? (
           <button
-            className="block w-full rounded border border-dashed border-zinc-600 px-2.5 py-1.5 text-left text-xs text-zinc-400 hover:border-orange-500/60 hover:text-zinc-200"
+            className="block w-full rounded border border-dashed border-zinc-700 px-2.5 py-1.5 text-left text-xs text-zinc-400 hover:border-orange-500/60 hover:text-zinc-200"
             disabled={submitting}
             onClick={() => setCustomOpen(true)}
           >
@@ -354,8 +354,8 @@ function AskUserCard({ pending }: { pending: PendingQuestion }) {
           <div className="flex gap-1.5">
             <input
               autoFocus
-              className={`flex-1 rounded border bg-zinc-800 px-2 py-1.5 text-xs text-zinc-100 focus:border-orange-500 focus:outline-none ${
-                voiceSeeded ? 'border-orange-500/70' : 'border-zinc-800'
+              className={`flex-1 rounded   bg-zinc-800 px-2 py-1.5 text-xs text-zinc-100 focus:border-orange-500 focus:outline-none ${
+                voiceSeeded ? 'border-orange-500/70' : ''
               }`}
               placeholder={voiceSeeded ? 'Voice answer staged — edit or Send' : 'Type your own answer…'}
               value={custom}
@@ -486,7 +486,7 @@ function ApprovalCard({ approval }: { approval: PendingApproval }) {
         {summary && <span className="truncate text-zinc-400">{summary}</span>}
       </p>
       {commandLike && (
-        <pre className="mb-2 max-h-32 overflow-y-auto whitespace-pre-wrap rounded border border-zinc-800 bg-zinc-950 p-2 font-mono text-[11px] text-zinc-300">
+        <pre className="mb-2 max-h-32 overflow-y-auto whitespace-pre-wrap rounded   bg-zinc-950 p-2 font-mono text-[11px] text-zinc-300">
           {String(approval.args?.command ?? '')}
         </pre>
       )}
@@ -499,7 +499,7 @@ function ApprovalCard({ approval }: { approval: PendingApproval }) {
           {submitting ? '…' : 'Approve'}
         </button>
         <button
-          className="rounded border border-zinc-600 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800 disabled:opacity-50"
+          className="rounded   px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800 disabled:opacity-50"
           disabled={submitting}
           onClick={() => respond('deny')}
         >
@@ -508,7 +508,7 @@ function ApprovalCard({ approval }: { approval: PendingApproval }) {
       </div>
       {!customOpen ? (
         <button
-          className="mt-1.5 block w-full rounded border border-dashed border-zinc-600 px-2.5 py-1.5 text-left text-xs text-zinc-400 hover:border-orange-500/60 hover:text-zinc-200"
+          className="mt-1.5 block w-full rounded border border-dashed border-zinc-700 px-2.5 py-1.5 text-left text-xs text-zinc-400 hover:border-orange-500/60 hover:text-zinc-200"
           disabled={submitting}
           onClick={() => setCustomOpen(true)}
         >
@@ -518,7 +518,7 @@ function ApprovalCard({ approval }: { approval: PendingApproval }) {
         <div className="mt-1.5 flex gap-1.5">
           <input
             autoFocus
-            className="flex-1 rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs text-zinc-100 focus:border-zinc-500 focus:outline-none"
+            className="flex-1 rounded   bg-zinc-800 px-2 py-1.5 text-xs text-zinc-100 focus:border-zinc-500 focus:outline-none"
             placeholder="Why deny? Sent to the model as guidance…"
             value={custom}
             onChange={(e) => setCustom(e.target.value)}
@@ -611,7 +611,7 @@ function PlanApprovalCard({ pending }: { pending: PendingPlanApproval }) {
         </button>
         {!customOpen && (
           <button
-            className="rounded border border-zinc-600 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800 disabled:opacity-50"
+            className="rounded   px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800 disabled:opacity-50"
             disabled={submitting}
             onClick={() => setCustomOpen(true)}
           >
@@ -623,7 +623,7 @@ function PlanApprovalCard({ pending }: { pending: PendingPlanApproval }) {
         <div className="mt-1.5 flex gap-1.5">
           <input
             autoFocus
-            className="flex-1 rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs text-zinc-100 focus:border-zinc-500 focus:outline-none"
+            className="flex-1 rounded   bg-zinc-800 px-2 py-1.5 text-xs text-zinc-100 focus:border-zinc-500 focus:outline-none"
             placeholder="What should change? Sent to the model as feedback…"
             value={custom}
             onChange={(e) => setCustom(e.target.value)}
@@ -657,7 +657,7 @@ function AskUserTrace({ tc }: { tc: ToolCall }) {
   const result = (tc.result ?? {}) as { answer?: string | null; note?: string }
   const answer = typeof result.answer === 'string' && result.answer ? result.answer : null
   return (
-    <div className="rounded border border-zinc-800 bg-zinc-900/60 p-2">
+    <div className="rounded   bg-zinc-900/60 p-2">
       <p className="mb-1.5 whitespace-pre-wrap font-sans text-xs text-zinc-200">
         {args.question ?? ''}
       </p>
@@ -1007,7 +1007,7 @@ function CompactionChip({ summarized, summary }: { summarized?: number; summary:
         </span>
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-10 mt-1 max-h-72 w-96 overflow-auto whitespace-pre-wrap rounded border border-zinc-800 bg-zinc-900 p-2 font-mono text-[11px] text-zinc-400">
+        <div className="absolute left-0 top-full z-10 mt-1 max-h-72 w-96 overflow-auto whitespace-pre-wrap rounded   bg-zinc-900 p-2 font-mono text-[11px] text-zinc-400">
           {summary}
         </div>
       )}
@@ -1041,7 +1041,7 @@ function TraceLine({ calls }: { calls: ToolCall[] }) {
         </span>
       </button>
       {open && (
-        <div className="mt-1 space-y-0.5 border-l border-zinc-800 pl-2">
+        <div className="mt-1 space-y-0.5   pl-2">
           {calls.map((tc) => (
             <ToolCallRow key={tc.id} tc={tc} />
           ))}
@@ -1099,7 +1099,7 @@ function ToolCallRow({ tc }: { tc: ToolCall }) {
                 src={imageSrc(imgRel)}
                 alt={`${tc.name} result`}
                 title="click to open full size"
-                className={`max-h-64 cursor-zoom-in rounded border border-zinc-800`}
+                className={`max-h-64 cursor-zoom-in rounded`}
                 onClick={() => useAgent.getState().setLightboxSrc(imgRel)}
               />
             ))}
@@ -1135,7 +1135,7 @@ function ToolCallRow({ tc }: { tc: ToolCall }) {
         <span className="shrink-0 text-zinc-600">{open ? '[-]' : '[+]'}</span>
       </button>
       {open && (
-        <div className="border-l border-zinc-800 px-2 py-1 text-zinc-400">
+        <div className="  px-2 py-1 text-zinc-400">
           <div className="whitespace-pre-wrap break-all text-zinc-300">
             args: {JSON.stringify(tc.args ?? {}, null, 2)}
           </div>
@@ -1183,7 +1183,7 @@ function SubAgentBlock({ run }: { run: SubAgentRun }) {
       ? 'text-red-400'
       : 'text-emerald-400'
   return (
-    <div data-subagent-card="" className="my-1 rounded border border-zinc-800 bg-zinc-900/40">
+    <div data-subagent-card="" className="my-1 rounded   bg-zinc-900/40">
       <button
         data-subagent-toggle=""
         aria-expanded={open}
@@ -1199,7 +1199,7 @@ function SubAgentBlock({ run }: { run: SubAgentRun }) {
         </span>
         <span className="shrink-0 text-zinc-600">{open ? '\u25be' : '\u25b8'}</span>
       </button>
-      <div className="border-t border-zinc-800/80 px-3 py-1.5">
+      <div className="  px-3 py-1.5">
         {open ? (
           run.text ? (
             <div className="text-sm leading-relaxed text-zinc-200" data-subagent-full-text="">
@@ -1241,7 +1241,7 @@ function SubAgentBlock({ run }: { run: SubAgentRun }) {
  *  same expandable trace rows as the parent conversation. */
 function SubAgentToolTicker({ tools, telemetry }: { tools: SubAgentToolCall[]; telemetry: string }) {
   return (
-    <div className="min-w-0 border-l border-zinc-800 pl-2">
+    <div className="min-w-0   pl-2">
       <ToolTicker calls={tools} telemetry={telemetry} showCompaction={false} />
     </div>
   )
@@ -1262,7 +1262,7 @@ function MessageBody({ content }: { content: string }) {
 function CompactionDivider({ summarized, summary }: { summarized?: number; summary: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="my-1 border-l-2 border-zinc-800 pl-2">
+    <div className="my-1 border-l-2 pl-2">
       <button
         onClick={() => setOpen(!open)}
         className="font-mono text-[11px] text-zinc-500 hover:text-zinc-300"
@@ -1273,7 +1273,7 @@ function CompactionDivider({ summarized, summary }: { summarized?: number; summa
         {' — details above this line are condensed'}
       </button>
       {open && (
-        <div className="mt-1 max-h-72 overflow-auto whitespace-pre-wrap border-l border-zinc-800 pl-2 font-mono text-[11px] text-zinc-400">
+        <div className="mt-1 max-h-72 overflow-auto whitespace-pre-wrap   pl-2 font-mono text-[11px] text-zinc-400">
           {summary}
         </div>
       )}
@@ -1446,8 +1446,8 @@ function GitActivityDiagram({ summary }: { summary: GitActivitySummary }) {
       title={enlarged ? 'Restore diagram size' : 'Enlarge diagram'}
       onClick={() => setEnlarged((current) => !current)}
       className={enlarged
-        ? 'fixed inset-[1%] z-40 cursor-zoom-out overflow-auto rounded border border-zinc-800 bg-zinc-950 p-[1.5%] text-left shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
-        : 'block w-full cursor-zoom-in overflow-x-auto rounded border border-zinc-800 bg-zinc-950 p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'}
+        ? 'fixed inset-[1%] z-40 cursor-zoom-out overflow-auto rounded   bg-zinc-950 p-[1.5%] text-left shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'
+        : 'block w-full cursor-zoom-in overflow-x-auto rounded   bg-zinc-950 p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'}
     >
       <span className="sr-only">{enlarged ? 'Click to restore the diagram to its default size.' : 'Click to enlarge the diagram.'}</span>
       <span className={enlarged ? 'block min-w-[720px] [&_svg]:h-auto [&_svg]:max-w-full' : 'block min-w-[520px] [&_svg]:h-auto [&_svg]:max-w-full'} aria-hidden="true" dangerouslySetInnerHTML={{ __html: svg }} />
@@ -1471,7 +1471,7 @@ function GitActivitySummary({ summary }: { summary: GitActivitySummary }) {
         : `${lane.branch || 'branch'} remains separate`).join(' · ')
     : 'Git operations recorded'
   return (
-    <div className="w-fit max-w-full overflow-hidden rounded-md border border-zinc-800/80 bg-zinc-900/70 font-mono text-[11px]">
+    <div className="w-fit max-w-full overflow-hidden rounded-md   bg-zinc-900/70 font-mono text-[11px]">
       <button
         type="button"
         className="flex min-h-7 max-w-full items-center gap-2 px-2 py-1 text-left text-zinc-300 hover:bg-zinc-800/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
@@ -1486,7 +1486,7 @@ function GitActivitySummary({ summary }: { summary: GitActivitySummary }) {
         </span>
       </button>
       {open && (
-        <div id={panelId} className="max-w-[min(80vw,760px)] space-y-3 border-t border-zinc-800 p-2">
+        <div id={panelId} className="max-w-[min(80vw,760px)] space-y-3   p-2">
           <GitActivityDiagram summary={summary} />
           <ol className="space-y-2" aria-label="Git operation timeline">
             {summary.lanes.map((lane) => (
@@ -1531,7 +1531,7 @@ function FileChangesSummary({ summary }: { summary: FileChangeSummary }) {
   const panelId = useId()
   const count = summary.files.length
   return (
-    <div className="w-fit max-w-full overflow-hidden rounded-md border border-zinc-800/80 bg-zinc-900/70 font-mono text-[11px]">
+    <div className="w-fit max-w-full overflow-hidden rounded-md   bg-zinc-900/70 font-mono text-[11px]">
       <button
         type="button"
         className="flex min-h-7 max-w-full items-center gap-2 px-2 py-1 text-left text-zinc-300 hover:bg-zinc-800/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
@@ -1545,9 +1545,9 @@ function FileChangesSummary({ summary }: { summary: FileChangeSummary }) {
         <span className="whitespace-nowrap text-red-400">-{summary.deleted}</span>
       </button>
       {open && (
-        <div id={panelId} className="border-t border-zinc-800" role="list" aria-label="Changed files">
+        <div id={panelId} className=" " role="list" aria-label="Changed files">
           {summary.files.map((file) => (
-            <div key={file.path} role="listitem" className="flex min-h-7 max-w-full items-center gap-2 border-b border-zinc-800/70 px-2 py-1 last:border-b-0">
+            <div key={file.path} role="listitem" className="flex min-h-7 max-w-full items-center gap-2   px-2 py-1 last:border-b-0">
               <span className="w-2 shrink-0 text-amber-400" aria-hidden="true">{'{}'}</span>
               <span className="min-w-0 flex-1 truncate text-zinc-300" title={file.path}>{file.path}</span>
               {file.binary ? (
@@ -1721,10 +1721,10 @@ export function MessageView({ msg, live }: { msg: ChatMessage; live?: boolean })
     return (
       <div className="flex justify-end">
         <div
-          className={`max-w-[85%] rounded border px-3 py-2 text-sm ${
+          className={`max-w-[85%] rounded   px-3 py-2 text-sm ${
             msg.queued
-              ? 'border-dashed border-zinc-500/70 bg-zinc-800/60 text-zinc-100'
-              : 'border-zinc-800/70 bg-zinc-800/60 text-zinc-100'
+              ? 'border-dashed bg-zinc-800/60 text-zinc-100'
+              : ' bg-zinc-800/60 text-zinc-100'
           }`}
         >
           {msg.queued && (
@@ -1740,7 +1740,7 @@ export function MessageView({ msg, live }: { msg: ChatMessage; live?: boolean })
                   src={imageSrc(rel)}
                   alt="attachment"
                   title="click to open full size"
-                  className="max-h-40 cursor-zoom-in rounded border border-zinc-800"
+                  className="max-h-40 cursor-zoom-in rounded border border-zinc-700"
                   onClick={() => useAgent.getState().setLightboxSrc(rel)}
                 />
               ))}
@@ -1885,7 +1885,7 @@ export function MessageView({ msg, live }: { msg: ChatMessage; live?: boolean })
   }
 
   return (
-    <div className="border-l-2 border-zinc-800/70 pl-3">
+    <div className="border-l-2 pl-3">
       <div className="mb-0.5 flex items-center gap-2 select-none font-mono text-[10px] uppercase tracking-widest text-zinc-600">
         agent
         {/* Stop control on the message currently being read aloud. */}
@@ -1987,7 +1987,7 @@ function QuestionAnchor({ tc, after }: { tc: ToolCall; after: ToolCall[] }) {
         </span>
       </button>
       {open && (
-        <div className="border-t border-orange-800/40 px-2.5 py-2">
+        <div className="  border-orange-800/40 px-2.5 py-2">
           <AskUserTrace tc={tc} />
           {after.length > 0 && (
             <p className="mt-1.5 truncate font-mono text-[11px] text-zinc-500">
@@ -2025,7 +2025,7 @@ function PlanBanner({ plan }: { plan: string }) {
         </span>
       </button>
       {open && (
-        <div className="max-h-64 overflow-y-auto border-t border-sky-800/40 px-3 py-2 text-sm text-zinc-100">
+        <div className="max-h-64 overflow-y-auto   border-sky-800/40 px-3 py-2 text-sm text-zinc-100">
           <AgentMarkdown content={plan} />
         </div>
       )}
@@ -2228,7 +2228,7 @@ export function FilesPanel() {
 
   if (collapsed) {
     return (
-      <aside className="hidden w-7 min-w-[28px] flex-col items-center border-r border-zinc-800 bg-zinc-900/40 py-2 xl:flex">
+      <aside className="hidden w-7 min-w-[28px] flex-col items-center   bg-zinc-900/40 py-2 xl:flex">
         <button
           className="rounded p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300"
           title="Show files"
@@ -2250,8 +2250,8 @@ export function FilesPanel() {
   }
 
   return (
-    <aside className="hidden w-60 min-w-[200px] flex-col border-r border-zinc-800 bg-zinc-900/40 xl:flex">
-      <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2">
+    <aside className="hidden w-60 min-w-[200px] flex-col   bg-zinc-900/40 xl:flex">
+      <div className="flex items-center justify-between   px-3 py-2">
         <button
           className="rounded p-0.5 text-zinc-500 hover:text-zinc-300"
           title="Hide files"
@@ -2307,7 +2307,7 @@ export function FilesPanel() {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setMenu(null)} onContextMenu={(e) => { e.preventDefault(); setMenu(null) }} />
           <div
-            className="fixed z-50 w-40 rounded border border-zinc-800 bg-zinc-900 py-1 text-xs shadow-xl"
+            className="fixed z-50 w-40 rounded   bg-zinc-900 py-1 text-xs shadow-xl"
             role="menu"
             aria-label={`Actions for ${menu.entry.path}`}
             style={{ left: Math.min(menu.x, window.innerWidth - 170), top: Math.min(menu.y, window.innerHeight - 120) }}
@@ -2397,10 +2397,10 @@ export function PreviewModal() {
       onClick={() => setPreviewPath(null)}
     >
       <div
-        className="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-2xl"
+        className="flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-lg   bg-zinc-900 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-zinc-800 px-3 py-2">
+        <div className="flex items-center justify-between   px-3 py-2">
           <h2 className="truncate font-mono text-xs text-zinc-300">{previewPath}</h2>
           <button
             className="ml-2 text-[10px] text-zinc-500 hover:text-zinc-300"
@@ -2484,7 +2484,7 @@ export function ImageLightbox() {
         else e.stopPropagation()
       }}
     >
-      <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded border border-zinc-800 bg-zinc-900/90 px-1 py-0.5">
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded   bg-zinc-900/90 px-1 py-0.5">
         <button
           title="Zoom in (at max, cycles back to fit)"
           className="rounded px-1.5 text-sm leading-6 text-zinc-300 hover:bg-zinc-800"
@@ -2597,7 +2597,7 @@ function DialogShell({ children, onClose, panelClassName, panelRole, panelLabel 
       onClick={onClose}
     >
       <div
-        className={panelClassName ?? "w-full max-w-sm rounded-lg border border-zinc-800 bg-zinc-900 shadow-2xl"}
+        className={panelClassName ?? "w-full max-w-sm rounded-lg   bg-zinc-900 shadow-2xl"}
         role={panelRole}
         aria-label={panelLabel}
         aria-modal={panelRole ? true : undefined}
@@ -2630,7 +2630,7 @@ function ConfirmDialog({
         <p className="mb-4 break-words text-xs leading-relaxed text-zinc-400">{body}</p>
         <div className="flex justify-end gap-2">
           <button
-            className="rounded border border-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
+            className="rounded   px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
             onClick={onCancel}
           >
             Cancel
@@ -2683,11 +2683,11 @@ function PromptDialog({
               onOK(value)
             }
           }}
-          className="w-full resize-y rounded border border-zinc-700 bg-zinc-800 px-2 py-1.5 font-mono text-xs text-zinc-100 focus:border-zinc-500 focus:outline-none"
+          className="w-full resize-y rounded   bg-zinc-800 px-2 py-1.5 font-mono text-xs text-zinc-100 focus:border-zinc-500 focus:outline-none"
         />
         <div className="mt-3 flex justify-end gap-2">
           <button
-            className="rounded border border-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
+            className="rounded   px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
             onClick={onCancel}
           >
             Cancel
@@ -2722,7 +2722,7 @@ function NoticeDialog({
         <div className="flex justify-end">
           <button
             autoFocus
-            className="rounded border border-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
+            className="rounded   px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
             onClick={onClose}
           >
             OK
@@ -2810,10 +2810,10 @@ function MoveChatDialog({
               key={w.id}
               disabled={!w.exists}
               title={w.exists ? w.path ?? 'No root directory' : 'Folder not found on disk'}
-              className={`flex w-full items-center justify-between rounded border px-2 py-1.5 text-left text-xs ${
+              className={`flex w-full items-center justify-between rounded   px-2 py-1.5 text-left text-xs ${
                 picked === w.path
                   ? 'border-blue-500 bg-blue-950/40 text-zinc-100'
-                  : 'border-zinc-700 bg-zinc-800/40 text-zinc-300 hover:bg-zinc-800'
+                  : ' bg-zinc-800/40 text-zinc-300 hover:bg-zinc-800'
               } ${!w.exists ? 'cursor-not-allowed opacity-40' : ''}`}
               onClick={() => setPicked(w.path)}
             >
@@ -2829,7 +2829,7 @@ function MoveChatDialog({
         </div>
         <div className="flex justify-end gap-2">
           <button
-            className="rounded border border-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
+            className="rounded   px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
             onClick={onCancel}
           >
             Cancel
@@ -2986,27 +2986,27 @@ export function RemoteTranscriptDialog({
   const renderedMessages = draftMessages ?? messages
 
   return (
-    <DialogShell onClose={editing ? () => void cancelEditing() : onClose} panelClassName="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-lg border border-zinc-800 bg-zinc-900 shadow-2xl" panelRole="dialog" panelLabel={`Remote transcript: ${title}`}>
-      <header className="flex items-start justify-between gap-4 border-b border-zinc-800 px-4 py-3">
+    <DialogShell onClose={editing ? () => void cancelEditing() : onClose} panelClassName="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-lg   bg-zinc-900 shadow-2xl" panelRole="dialog" panelLabel={`Remote transcript: ${title}`}>
+      <header className="flex items-start justify-between gap-4   px-4 py-3">
           <div className="min-w-0">
             <h2 className="truncate text-sm font-semibold text-zinc-100">{title}</h2>
             <p className="mt-1 font-mono text-[10px] text-zinc-500">{deviceName} <span className="px-1 text-zinc-700">·</span> {online ? 'remote transcript · read-only' : 'cached transcript · read-only offline'}</p>
           </div>
           <div className="flex shrink-0 gap-2">
-            {!editing && <button disabled={!online || busy} className="rounded border border-zinc-800 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-40" onClick={() => void startEditing()}>Edit transcript</button>}
+            {!editing && <button disabled={!online || busy} className="rounded   px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-40" onClick={() => void startEditing()}>Edit transcript</button>}
             {editing && <><button disabled={busy} className="rounded px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-800" onClick={() => void cancelEditing()}>Cancel edit</button><button disabled={busy} className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-500 disabled:opacity-40" onClick={() => void saveEditing()}>{busy ? 'Saving…' : 'Save changes'}</button></>}
             <button className="rounded px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500" onClick={() => editing ? void cancelEditing() : onClose()} aria-label="Close remote transcript">Close</button>
           </div>
         </header>
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-          {error && <div role="alert" className="flex items-center gap-2 py-4 text-xs text-red-400"><span>Could not load this transcript. {online ? 'Check the device connection and retry.' : 'Reconnect to this device to refresh its cached copy.'}</span><button className="shrink-0 rounded border border-zinc-800 px-2 py-1 text-[10px] text-zinc-300 hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500" onClick={() => setRetry((value) => value + 1)}>Retry</button></div>}
+          {error && <div role="alert" className="flex items-center gap-2 py-4 text-xs text-red-400"><span>Could not load this transcript. {online ? 'Check the device connection and retry.' : 'Reconnect to this device to refresh its cached copy.'}</span><button className="shrink-0 rounded   px-2 py-1 text-[10px] text-zinc-300 hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500" onClick={() => setRetry((value) => value + 1)}>Retry</button></div>}
           {(loading && messages === null) && !error && <div aria-label="Loading remote transcript" className="space-y-3 py-2"><div className="h-3 w-1/3 animate-pulse rounded bg-zinc-800"/><div className="h-12 w-2/3 animate-pulse rounded bg-zinc-800/70"/><div className="h-8 w-1/2 animate-pulse rounded bg-zinc-800/50"/></div>}
           {syncMessage && <p role="status" className="mb-2 text-xs text-amber-300">{syncMessage}</p>}
           {editing && draftMessages && <p className="mb-2 font-mono text-[10px] text-emerald-400">EDIT LEASE HELD · transcript-only changes; turns remain unavailable until Phase 6</p>}
           {renderedMessages?.length === 0 && <p className="py-4 text-xs text-zinc-500">This device chat has no messages yet.</p>}
-          {renderedMessages && renderedMessages.length > 0 && <div className="space-y-4">{renderedMessages.map((message, index) => editing ? <label key={message.id} className="block"><span className="mb-1 block font-mono text-[10px] text-zinc-500">{message.role}</span><textarea aria-label={`Edit ${message.role} message ${index + 1}`} className="min-h-20 w-full rounded border border-zinc-800 bg-zinc-950 p-2 text-sm text-zinc-200" value={message.content} onChange={(event) => setDraftMessages((current) => current?.map((item, itemIndex) => itemIndex === index ? { ...item, content: event.target.value } : item) ?? null)} /></label> : <MessageView key={message.id} msg={message}/> )}</div>}
+          {renderedMessages && renderedMessages.length > 0 && <div className="space-y-4">{renderedMessages.map((message, index) => editing ? <label key={message.id} className="block"><span className="mb-1 block font-mono text-[10px] text-zinc-500">{message.role}</span><textarea aria-label={`Edit ${message.role} message ${index + 1}`} className="min-h-20 w-full rounded   bg-zinc-950 p-2 text-sm text-zinc-200" value={message.content} onChange={(event) => setDraftMessages((current) => current?.map((item, itemIndex) => itemIndex === index ? { ...item, content: event.target.value } : item) ?? null)} /></label> : <MessageView key={message.id} msg={message}/> )}</div>}
         </div>
-      <footer className="border-t border-zinc-800 px-4 py-2 font-mono text-[10px] text-zinc-600">{editing ? 'LEASED TRANSCRIPT EDIT' : 'READ ONLY'} <span className="px-1 text-zinc-700">·</span> Remote turns and workspace execution remain Phase 6</footer>
+      <footer className="  px-4 py-2 font-mono text-[10px] text-zinc-600">{editing ? 'LEASED TRANSCRIPT EDIT' : 'READ ONLY'} <span className="px-1 text-zinc-700">·</span> Remote turns and workspace execution remain Phase 6</footer>
     </DialogShell>
   )
 }
@@ -3164,7 +3164,7 @@ export function DeviceGroups({
     void getWorkspaceGitBranches(workspacePath).catch(() => {})
   }
   return (
-    <section className="mb-2 border-b border-zinc-800 pb-2" aria-label="Remote devices">
+    <section className="mb-2   pb-2" aria-label="Remote devices">
       {devices.length > 0 && (
       <div className="flex items-center justify-between px-1 py-1">
         <h2 className="font-mono text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Remote devices</h2>
@@ -3177,13 +3177,13 @@ export function DeviceGroups({
       )}
       {adding && (
         <div className="space-y-1.5 px-1 pb-2">
-          <input aria-label="Device URL" className="w-full rounded border border-zinc-700 bg-zinc-800 px-2 py-1 font-mono text-[11px] text-zinc-200 placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none" placeholder="http://192.168.1.10:8765" value={url} onChange={(event) => setUrl(event.target.value)} />
-          <input aria-label="Device passphrase" type="password" autoComplete="new-password" className="w-full rounded border border-zinc-700 bg-zinc-800 px-2 py-1 font-mono text-[11px] text-zinc-200 placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none" placeholder="Passphrase (not saved)" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} />
+          <input aria-label="Device URL" className="w-full rounded   bg-zinc-800 px-2 py-1 font-mono text-[11px] text-zinc-200 placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none" placeholder="http://192.168.1.10:8765" value={url} onChange={(event) => setUrl(event.target.value)} />
+          <input aria-label="Device passphrase" type="password" autoComplete="new-password" className="w-full rounded   bg-zinc-800 px-2 py-1 font-mono text-[11px] text-zinc-200 placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none" placeholder="Passphrase (not saved)" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} />
           <div className="flex items-center justify-between">
             <button className="rounded px-1 py-0.5 text-[10px] text-zinc-500 hover:text-zinc-200 disabled:opacity-50" disabled={scanning || working !== null} onClick={() => void scan()}>{scanning ? 'Scanning…' : 'Scan network'}</button>
             <div className="flex gap-1.5"><button className="rounded px-2 py-1 text-[10px] text-zinc-400 hover:bg-zinc-800" onClick={() => setAdding(false)}>Cancel</button><button className="rounded bg-blue-600 px-2 py-1 text-[10px] text-white hover:bg-blue-500 disabled:opacity-50" disabled={working !== null || !url.trim()} onClick={() => void add()}>{working === 'add' ? 'Verifying…' : 'Save device'}</button></div>
           </div>
-          {hosts.length > 0 && <div className="max-h-24 overflow-auto border-t border-zinc-800 pt-1">{hosts.map((host) => <button key={`${host.host}:${host.port}`} className="block w-full truncate px-1 py-1 text-left text-[10px] text-zinc-300 hover:bg-zinc-800" onClick={() => { const discovered = `http://${host.host}:${host.port}`; setUrl(discovered); if (!host.auth) void add(discovered, '') }}>{host.name} · {host.host}:{host.port}</button>)}</div>}
+          {hosts.length > 0 && <div className="max-h-24 overflow-auto   pt-1">{hosts.map((host) => <button key={`${host.host}:${host.port}`} className="block w-full truncate px-1 py-1 text-left text-[10px] text-zinc-300 hover:bg-zinc-800" onClick={() => { const discovered = `http://${host.host}:${host.port}`; setUrl(discovered); if (!host.auth) void add(discovered, '') }}>{host.name} · {host.host}:{host.port}</button>)}</div>}
           {error && <p role="alert" className="text-[10px] text-red-400">{error}</p>}
         </div>
       )}
@@ -3219,7 +3219,7 @@ export function DeviceGroups({
               <button className="min-w-0 flex-1 truncate text-left text-xs text-zinc-300" title={`${device.url} · ${statusLabel}`} onClick={() => setExpandedDevices((current) => ({ ...current, [device.host_id]: true }))}>{device.name}</button>
               <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${connected ? 'bg-emerald-500' : device.status === 'error' ? 'bg-red-500' : 'bg-zinc-600'}`} title={statusLabel} aria-label={statusLabel} />
               <button className="rounded px-1 text-[10px] text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200 disabled:opacity-50" aria-label={connected ? `Disconnect ${device.name}` : `Reconnect ${device.name}`} title={connected ? 'Disconnect device' : 'Reconnect device'} disabled={working !== null || (!connected && !(passByDevice[device.host_id] ?? ''))} onClick={() => connected ? setDisconnectConfirmId(device.host_id) : void askToConnect(device)}>{working === device.host_id ? '…' : connected ? '−' : '↻'}</button>
-              {!connected && <input className="w-20 rounded border border-zinc-700 bg-zinc-800 px-1 py-0.5 font-mono text-[9px] text-zinc-300 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none" type="password" autoComplete="new-password" aria-label={`Passphrase for ${device.name}`} placeholder="passphrase" value={passByDevice[device.host_id] ?? ''} onChange={(event) => setPassByDevice((current) => ({ ...current, [device.host_id]: event.target.value }))} />}
+              {!connected && <input className="w-20 rounded   bg-zinc-800 px-1 py-0.5 font-mono text-[9px] text-zinc-300 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none" type="password" autoComplete="new-password" aria-label={`Passphrase for ${device.name}`} placeholder="passphrase" value={passByDevice[device.host_id] ?? ''} onChange={(event) => setPassByDevice((current) => ({ ...current, [device.host_id]: event.target.value }))} />}
               <button className="rounded px-1 text-[10px] text-zinc-600 opacity-0 hover:text-red-400 group-hover/device:opacity-100 focus:opacity-100" aria-label={`Remove ${device.name}`} title="Remove device profile" disabled={working !== null} onClick={() => setRemoveConfirmId(device.host_id)}>×</button>
             </div>
             {expanded && <>
@@ -3232,7 +3232,7 @@ export function DeviceGroups({
                 </div>
               ))}
               {!connected && deviceWorkspaces.length === 0 && <p className="px-6 py-1 text-[10px] text-zinc-600">No cached workspaces</p>}
-              <div className="mt-1 border-t border-zinc-800/70 pt-1">
+              <div className="mt-1   pt-1">
                 <div className="flex items-center justify-between px-6 py-0.5">
                   <span className="font-mono text-[9px] uppercase tracking-wider text-zinc-600">Device chats</span>
                   <button className="rounded px-1 text-[10px] text-zinc-600 hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50" aria-label={`Refresh chats from ${device.name}`} title="Refresh cached transcripts from this device" disabled={loadingDeviceChats[device.host_id]} onClick={() => void refreshDeviceChats(device.host_id)}>{loadingDeviceChats[device.host_id] ? '…' : '↻'}</button>
@@ -3246,7 +3246,7 @@ export function DeviceGroups({
                 {!loadingDeviceChats[device.host_id] && !deviceChatErrors[device.host_id] && ownedConversations.length === 0 && <p className="px-6 py-1 text-[10px] text-zinc-600">No cached device chats</p>}
               </div>
               {connected && <button className="ml-6 mt-0.5 rounded px-1 py-0.5 text-[10px] text-zinc-600 hover:bg-zinc-800 hover:text-zinc-300" onClick={() => { setAddingFolderFor(addingFolderFor === device.host_id ? null : device.host_id); setFolderPath('') }}>+ Add folder</button>}
-              {addingFolderFor === device.host_id && connected && <div className="ml-6 mt-1 border-l border-zinc-800 pl-2"><input autoFocus className="w-full rounded border border-zinc-700 bg-zinc-800 px-1.5 py-1 font-mono text-[10px] text-zinc-200 focus:border-zinc-500 focus:outline-none" aria-label={`Folder path on ${device.name}`} placeholder="path on device" value={folderPath} onChange={(event) => setFolderPath(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void addFolder(); if (event.key === 'Escape') setAddingFolderFor(null) }} /><button className="mt-1 rounded bg-blue-600 px-2 py-0.5 text-[10px] text-white hover:bg-blue-500 disabled:opacity-50" disabled={!folderPath.trim() || working !== null} onClick={() => void addFolder()}>{working === device.host_id ? 'Adding…' : 'Add folder'}</button></div>}
+              {addingFolderFor === device.host_id && connected && <div className="ml-6 mt-1   pl-2"><input autoFocus className="w-full rounded   bg-zinc-800 px-1.5 py-1 font-mono text-[10px] text-zinc-200 focus:border-zinc-500 focus:outline-none" aria-label={`Folder path on ${device.name}`} placeholder="path on device" value={folderPath} onChange={(event) => setFolderPath(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void addFolder(); if (event.key === 'Escape') setAddingFolderFor(null) }} /><button className="mt-1 rounded bg-blue-600 px-2 py-0.5 text-[10px] text-white hover:bg-blue-500 disabled:opacity-50" disabled={!folderPath.trim() || working !== null} onClick={() => void addFolder()}>{working === device.host_id ? 'Adding…' : 'Add folder'}</button></div>}
             </>}
           </div>
         )
@@ -3570,7 +3570,7 @@ function ConversationList({
                 workspace (the open conversation's workspace) carries the
                 state marker — it survives collapse so a hidden active chat
                 stays findable. */}
-            <div className="border-t border-zinc-800 pt-2 first:border-t-0 first:pt-0">
+            <div className="  pt-2 first:border-t-0 first:pt-0">
             <div className="group flex items-center gap-0.5 rounded px-1 py-1 hover:bg-zinc-800/60">
               <button
                 className={`min-w-0 flex-1 truncate text-left font-mono text-[11px] font-semibold uppercase tracking-wider ${
@@ -3951,7 +3951,7 @@ function ConversationRow({
           ⋯
         </button>
         {menuOpen && (
-          <div className="absolute right-0 top-6 z-20 w-44 rounded border border-zinc-800 bg-zinc-900 py-1 shadow-xl">
+          <div className="absolute right-0 top-6 z-20 w-44 rounded   bg-zinc-900 py-1 shadow-xl">
             <button
               className="block w-full px-3 py-1.5 text-left text-xs text-zinc-300 hover:bg-zinc-800"
               onClick={() => {
@@ -4039,7 +4039,7 @@ function UpdateChip() {
           : 'update failed — click to retry'
   return (
     <button
-      className="mb-2 w-full overflow-hidden rounded border border-zinc-700 bg-zinc-800/60 px-2 py-1 text-left font-mono text-[10px] text-zinc-300 hover:border-zinc-500 disabled:opacity-60"
+      className="mb-2 w-full overflow-hidden rounded   bg-zinc-800/60 px-2 py-1 text-left font-mono text-[10px] text-zinc-300 hover:border-zinc-500 disabled:opacity-60"
       onClick={() => install()}
       disabled={phase === 'downloading' || phase === 'installing'}
       title={phase === 'error' && error ? `Update failed: ${error}` : `Install YAAH v${update.version} (github.com/elboaf/YAAH/releases/latest)`}
@@ -4168,7 +4168,7 @@ export function DefaultThoughtLevelPicker() {
     <div className="w-24 shrink-0">
       <select
         id="default-thought-level"
-        className="w-full rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-200 focus:border-zinc-500 focus:outline-none disabled:opacity-60"
+        className="w-full rounded   bg-zinc-800 px-2 py-1 text-xs text-zinc-200 focus:border-zinc-500 focus:outline-none disabled:opacity-60"
         value={effort}
         onChange={(e) => void apply(e.target.value)}
         disabled={saving}
@@ -4278,11 +4278,11 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="flex w-64 min-w-[220px] flex-col border-r border-zinc-800 bg-zinc-900 p-2 text-sm">
+      <aside className="flex w-64 min-w-[220px] flex-col   bg-zinc-900 p-2 text-sm">
         <ConversationList addingDevice={addingDevice} setAddingDevice={setAddingDevice} />
         <UpdateChip />
         {/* Compact defaults: existing chats retain their own selections. */}
-        <div className="relative mt-auto border-t border-zinc-800 pt-2">
+        <div className="relative mt-auto   pt-2">
           <div className="mb-1.5 flex items-center gap-1.5">
             <button
               className="min-w-0 flex-1 rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-500"
@@ -4295,7 +4295,7 @@ export function Sidebar() {
             </button>
             <div className="relative shrink-0">
               <button
-                className="flex h-7 w-7 items-center justify-center rounded border border-dashed border-zinc-800 text-zinc-500 hover:border-zinc-500 hover:bg-zinc-800/60 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+                className="flex h-7 w-7 items-center justify-center rounded border border-dashed border-zinc-700 text-zinc-500 hover:border-zinc-500 hover:bg-zinc-800/60 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
                 aria-label="Add workspace"
                 aria-haspopup="menu"
                 aria-expanded={addMenuOpen}
@@ -4308,7 +4308,7 @@ export function Sidebar() {
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setAddMenuOpen(false)} />
                   <div
-                    className="absolute bottom-8 left-0 z-40 w-44 rounded border border-zinc-800 bg-zinc-900 py-1 shadow-xl"
+                    className="absolute bottom-8 left-0 z-40 w-44 rounded   bg-zinc-900 py-1 shadow-xl"
                     role="menu"
                     aria-label="Add workspace"
                   >
@@ -4340,7 +4340,7 @@ export function Sidebar() {
           <div className="flex items-center gap-1.5">
             <select
               id="default-model"
-              className="min-w-0 flex-1 truncate rounded border border-zinc-700 bg-zinc-800 px-1.5 py-1 font-mono text-xs text-zinc-200 focus:border-zinc-500 focus:outline-none disabled:opacity-60"
+              className="min-w-0 flex-1 truncate rounded   bg-zinc-800 px-1.5 py-1 font-mono text-xs text-zinc-200 focus:border-zinc-500 focus:outline-none disabled:opacity-60"
               value={`${activeProvider}::${globalModel}`}
               onChange={(e) => pickModel(e.target.value)}
               disabled={savingModel}
@@ -4367,7 +4367,7 @@ export function Sidebar() {
           {modelError && <p id="default-model-status" className="mt-1 text-[10px] text-red-400" role="alert">{modelError}</p>}
           {Object.keys(byProvider).length === 0 && (
             <button
-              className="mt-1.5 w-full rounded border border-zinc-700 bg-zinc-800/60 px-2 py-1 text-left text-[10px] leading-relaxed text-zinc-300 hover:border-zinc-500"
+              className="mt-1.5 w-full rounded   bg-zinc-800/60 px-2 py-1 text-left text-[10px] leading-relaxed text-zinc-300 hover:border-zinc-500"
               onClick={() => setShowSettings(true)}
             >
               No model provider configured — add one in Settings to start.
@@ -4495,7 +4495,7 @@ function McpSection() {
           </p>
         )}
         {servers.map((s) => (
-          <div key={s.name} className="rounded border border-zinc-800 bg-zinc-900/60 p-2">
+          <div key={s.name} className="rounded   bg-zinc-900/60 p-2">
             <div className="flex items-center gap-2">
               <span className={`font-mono text-[10px] uppercase ${statusColor(s.status)}`}>
                 {s.status}
@@ -4505,13 +4505,13 @@ function McpSection() {
                 {s.command} {s.args.join(' ')}
               </span>
               <button
-                className="shrink-0 rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
+                className="shrink-0 rounded   px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
                 onClick={() => setExpanded(expanded === s.name ? null : s.name)}
               >
                 {s.tools.length} tool{s.tools.length === 1 ? '' : 's'}
               </button>
               <button
-                className="shrink-0 rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-zinc-800"
+                className="shrink-0 rounded   px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-zinc-800"
                 disabled={busy}
                 onClick={() => void remove(s.name)}
               >
@@ -4538,28 +4538,28 @@ function McpSection() {
         ))}
         <div className="flex gap-1.5">
           <input
-            className="w-24 shrink-0 rounded border border-zinc-700 bg-zinc-800 px-2 py-1 font-mono text-xs"
+            className="w-24 shrink-0 rounded   bg-zinc-800 px-2 py-1 font-mono text-xs"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="name"
             aria-label="Server name"
           />
           <input
-            className="min-w-0 flex-1 rounded border border-zinc-700 bg-zinc-800 px-2 py-1 font-mono text-xs"
+            className="min-w-0 flex-1 rounded   bg-zinc-800 px-2 py-1 font-mono text-xs"
             value={command}
             onChange={(e) => setCommand(e.target.value)}
             placeholder='command, e.g. npx -y @modelcontextprotocol/server-filesystem ~'
             aria-label="Server command"
           />
           <input
-            className="w-40 shrink-0 rounded border border-zinc-700 bg-zinc-800 px-2 py-1 font-mono text-xs"
+            className="w-40 shrink-0 rounded   bg-zinc-800 px-2 py-1 font-mono text-xs"
             value={args}
             onChange={(e) => setArgs(e.target.value)}
             placeholder="args (space-separated)"
             aria-label="Server args"
           />
           <button
-            className="shrink-0 rounded border border-zinc-800 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+            className="shrink-0 rounded   px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
             disabled={busy}
             onClick={() => void add()}
           >
@@ -4641,7 +4641,7 @@ function StopIcon() {
 }
 
 const agentInputCls =
-  'rounded border border-zinc-700 bg-zinc-800 px-2 py-1 font-mono text-xs text-zinc-100 focus:border-zinc-500 focus:outline-none'
+  'rounded   bg-zinc-800 px-2 py-1 font-mono text-xs text-zinc-100 focus:border-zinc-500 focus:outline-none'
 
 /** One standing instruction row: inline edit + delete (issue #41: the list
  *  is editable and individually deletable). */
@@ -4674,14 +4674,14 @@ function InstructionRow({ agentId, ins }: { agentId: string; ins: AgentInstructi
           autoFocus
         />
         <button
-          className="shrink-0 rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-300 hover:bg-zinc-800"
+          className="shrink-0 rounded   px-1.5 py-0.5 text-[10px] text-zinc-300 hover:bg-zinc-800"
           disabled={busy}
           onClick={() => void save()}
         >
           save
         </button>
         <button
-          className="shrink-0 rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
+          className="shrink-0 rounded   px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
           onClick={() => {
             setDraft(ins.content)
             setEditing(false)
@@ -4696,13 +4696,13 @@ function InstructionRow({ agentId, ins }: { agentId: string; ins: AgentInstructi
     <li className="flex items-start gap-1.5">
       <span className="min-w-0 flex-1 break-words text-[11px] text-zinc-300">{ins.content}</span>
       <button
-        className="shrink-0 rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
+        className="shrink-0 rounded   px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
         onClick={() => setEditing(true)}
       >
         edit
       </button>
       <button
-        className="shrink-0 rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-zinc-800"
+        className="shrink-0 rounded   px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-zinc-800"
         onClick={() => void deleteAgentInstruction(agentId, ins.id)}
       >
         ✕
@@ -4747,7 +4747,7 @@ function InstructionsEditor({ agent }: { agent: ScheduledAgent }) {
           }}
         />
         <button
-          className="shrink-0 rounded border border-zinc-800 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
+          className="shrink-0 rounded   px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
           onClick={() => void add()}
         >
           Add
@@ -4999,9 +4999,9 @@ function AgentForm({
       </div>
       {agent && <InstructionsEditor agent={agent} />}
       {err && <p className="text-xs text-red-400">{err}</p>}
-      <div className="flex justify-end gap-2 border-t border-zinc-800 pt-2.5">
+      <div className="flex justify-end gap-2   pt-2.5">
         <button
-          className="rounded border border-zinc-800 px-3 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
+          className="rounded   px-3 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
           onClick={onCancel}
         >
           Cancel
@@ -5096,8 +5096,8 @@ function AgentsDialog({
 
   return (
     <div className={AGENT_DLG_OVERLAY} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-lg border border-zinc-800 bg-zinc-900 shadow-2xl">
-        <div className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-4 py-3">
+      <div className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-lg   bg-zinc-900 shadow-2xl">
+        <div className="flex shrink-0 items-center justify-between   px-4 py-3">
           <h2 className="font-mono text-xs uppercase tracking-wider text-zinc-400">
             Agents — {wsPath ? wsBasename(wsPath) : 'Default (Home)'}
           </h2>
@@ -5115,7 +5115,7 @@ function AgentsDialog({
                 </p>
               )}
               {wsAgents.map((a) => (
-                <div key={a.id} className="rounded border border-zinc-800 bg-zinc-900/60 p-2.5">
+                <div key={a.id} className="rounded   bg-zinc-900/60 p-2.5">
                   <div className="flex items-center gap-2">
                     <span
                       className={`font-mono text-[10px] uppercase ${a.running ? 'text-blue-400' : a.enabled ? 'text-emerald-400' : 'text-zinc-500'}`}
@@ -5131,33 +5131,33 @@ function AgentsDialog({
                   <p className="mt-1 line-clamp-2 text-[10px] text-zinc-500">{a.prompt}</p>
                   <div className="mt-1.5 flex items-center gap-1.5">
                     <button
-                      className="rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+                      className="rounded   px-1.5 py-0.5 text-[10px] text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
                       disabled={busy || a.running}
                       onClick={() => void runNow(a)}
                     >
                       run now
                     </button>
                     <button
-                      className="rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
+                      className="rounded   px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
                       disabled={busy}
                       onClick={() => void togglePause(a)}
                     >
                       {a.enabled ? 'pause' : 'resume'}
                     </button>
                     <button
-                      className="rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
+                      className="rounded   px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
                       onClick={() => setEditing(a.id)}
                     >
                       edit
                     </button>
                     <button
-                      className="rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
+                      className="rounded   px-1.5 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-800"
                       onClick={() => openChat(a)}
                     >
                       open chat
                     </button>
                     <button
-                      className="ml-auto rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-zinc-800"
+                      className="ml-auto rounded   px-1.5 py-0.5 text-[10px] text-red-400 hover:bg-zinc-800"
                       onClick={() => setDeleteTarget(a)}
                     >
                       delete
@@ -5166,7 +5166,7 @@ function AgentsDialog({
                 </div>
               ))}
               <button
-                className="w-full rounded border border-dashed border-zinc-800 px-3 py-2 text-xs text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
+                className="w-full rounded border border-dashed border-zinc-700 px-3 py-2 text-xs text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
                 onClick={() => setEditing('new')}
               >
                 + New agent
@@ -5244,9 +5244,9 @@ function ToastCard({ toast }: { toast: Toast }) {
       ? 'border-red-800 bg-red-950/90 text-red-200'
       : toast.kind === 'success'
         ? 'border-emerald-800 bg-emerald-950/90 text-emerald-200'
-        : 'border-zinc-700 bg-zinc-800/95 text-zinc-200'
+        : ' bg-zinc-800/95 text-zinc-200'
   return (
-    <div className={`pointer-events-auto rounded border px-3 py-2 shadow-lg ${tone}`}>
+    <div className={`pointer-events-auto rounded   px-3 py-2 shadow-lg ${tone}`}>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium">{toast.title}</p>
@@ -5435,7 +5435,7 @@ function AgentsSettingsSection() {
         </label>
         <span className="text-[10px] text-zinc-500">min</span>
         <button
-          className="ml-auto rounded border border-zinc-800 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
+          className="ml-auto rounded   px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
           onClick={() => void save()}
         >
           {saved ? 'Saved ✓' : 'Save'}
@@ -5457,7 +5457,7 @@ function SettingsCard({
   children: React.ReactNode
 }) {
   return (
-    <section className={`rounded-lg border border-zinc-800 p-3 ${className}`}>
+    <section className={`rounded-lg   p-3 ${className}`}>
       <h3 className="mb-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-zinc-500">
         {title}
       </h3>
@@ -5469,7 +5469,7 @@ function SettingsCard({
 /** Shared field chrome: raised fill, hairline border, blue focus border.
  *  Width is set per-use (w-full / flex-1 / fixed). */
 const settingsInputCls =
-  'rounded border border-zinc-700 bg-zinc-800 px-2 py-1 font-mono text-xs text-zinc-100 focus:border-zinc-500 focus:outline-none'
+  'rounded   bg-zinc-800 px-2 py-1 font-mono text-xs text-zinc-100 focus:border-zinc-500 focus:outline-none'
 
 function SettingsModal({ onClose }: { onClose: () => void }) {
   // Local working copy of the providers map: blank key field = keep saved key
@@ -5833,10 +5833,10 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
       {/* Percentage sizing only: the app root is zoomed (UiScale), so viewport
           units would double-zoom. Header/footer pinned, body scrolls. */}
       <div
-        className="flex max-h-[90%] w-[92%] max-w-4xl flex-col overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 shadow-2xl"
+        className="flex max-h-[90%] w-[92%] max-w-4xl flex-col overflow-hidden rounded-lg   bg-zinc-900 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-zinc-800 px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between   px-4 py-3">
           <h2 className="text-sm font-semibold text-zinc-100">Settings</h2>
           <button
             type="button"
@@ -5851,7 +5851,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div
-          className="flex shrink-0 gap-1 overflow-x-auto border-b border-zinc-800 px-4"
+          className="flex shrink-0 gap-1 overflow-x-auto   px-4"
           role="tablist"
           aria-label="Settings sections"
         >
@@ -5928,7 +5928,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                   return (
                     <div
                       key={name}
-                      className={`rounded border ${active === name ? 'border-zinc-800' : 'border-zinc-800'}`}
+                      className={`rounded ${active === name ? '' : ''}`}
                     >
                       <div className="flex items-center gap-2.5 px-2.5 py-2">
                         <input
@@ -5959,7 +5959,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                         </button>
                       </div>
                       {isOpen && (
-                        <div className="border-t border-zinc-800 p-2.5">
+                        <div className="  p-2.5">
                           <div className="mb-1.5 flex gap-1.5">
                             <input
                               className={`${settingsInputCls} min-w-0 flex-1`}
@@ -6072,7 +6072,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                 />
                 <button
                   type="button"
-                  className="shrink-0 rounded border border-zinc-800 px-2 text-[11px] text-zinc-300 hover:bg-zinc-800"
+                  className="shrink-0 rounded   px-2 text-[11px] text-zinc-300 hover:bg-zinc-800"
                   onClick={() => addProvider(newName)}
                 >
                   + custom
@@ -6083,7 +6083,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                   <button
                     key={preset}
                     type="button"
-                    className="rounded border border-zinc-800 px-2 py-1 font-mono text-[10px] text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                    className="rounded   px-2 py-1 font-mono text-[10px] text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
                     onClick={() => addProvider(providers[preset] ? `${preset}-2` : preset, preset)}
                   >
                     + {preset}
@@ -6104,10 +6104,10 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                     type="button"
                     role="radio"
                     aria-checked={voiceEngine === engine}
-                    className={`flex-1 rounded border px-2 py-1.5 font-mono text-xs ${
+                    className={`flex-1 rounded   px-2 py-1.5 font-mono text-xs ${
                       voiceEngine === engine
                         ? 'border-blue-600 bg-blue-600/15 text-zinc-100'
-                        : 'border-zinc-800 text-zinc-400 hover:bg-zinc-800'
+                        : ' text-zinc-400 hover:bg-zinc-800'
                     }`}
                     onClick={() => setVoiceEngine(engine)}
                   >
@@ -6164,15 +6164,15 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                 </div>
               )}
 
-              <div className="mt-2.5 border-t border-zinc-800 pt-2.5">
+              <div className="mt-2.5   pt-2.5">
                 <div className="mb-1.5 flex items-center gap-1.5">
                   <span className="text-[10px] text-zinc-500">Push-to-talk</span>
                   <button
                     type="button"
-                    className={`shrink-0 rounded border px-2 py-1 font-mono text-xs ${
+                    className={`shrink-0 rounded   px-2 py-1 font-mono text-xs ${
                       capturingHotkey
                         ? 'border-blue-600 bg-blue-950/40 text-blue-200'
-                        : 'border-zinc-800 text-zinc-400 hover:bg-zinc-800'
+                        : ' text-zinc-400 hover:bg-zinc-800'
                     }`}
                     onClick={() => setCapturingHotkey(true)}
                     aria-label="Record push-to-talk hotkey"
@@ -6181,7 +6181,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                   </button>
                   <button
                     type="button"
-                    className="rounded border border-zinc-800 px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-800"
+                    className="rounded   px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-800"
                     onClick={() => setPttHotkeyDraft('')}
                     aria-label="Disable push-to-talk hotkey"
                   >
@@ -6224,7 +6224,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                     nothing leaves this machine). One-time download:
                   </p>
                   {ttsDownloading ? (
-                    <div className="rounded border border-zinc-700 bg-zinc-800/40 px-2 py-1.5">
+                    <div className="rounded   bg-zinc-800/40 px-2 py-1.5">
                       <div className="mb-1 flex justify-between font-mono text-[10px] text-zinc-400">
                         <span>downloading voice model…</span>
                         <span>{ttsDlPct !== null ? `${ttsDlPct}%` : ''}</span>
@@ -6239,7 +6239,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                   ) : (
                     <button
                       type="button"
-                      className="rounded border border-zinc-800 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
+                      className="rounded   px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
                       onClick={() => {
                         setTtsDownloading(true)
                         setTtsDlErr(null)
@@ -6301,7 +6301,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                     </select>
                     <button
                       type="button"
-                      className="shrink-0 rounded border border-zinc-800 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
+                      className="shrink-0 rounded   px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
                       title="Preview this voice"
                       aria-label="Preview voice"
                       onClick={() => previewVoice(ttsVoiceDraft, ttsSpeedDraft)}
@@ -6389,10 +6389,10 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                       type="button"
                       role="radio"
                       aria-checked={uiScale === s}
-                      className={`rounded border px-2.5 py-1 font-mono text-xs ${
+                      className={`rounded   px-2.5 py-1 font-mono text-xs ${
                         uiScale === s
                           ? 'border-blue-600 bg-blue-600/15 text-zinc-100'
-                          : 'border-zinc-800 text-zinc-400 hover:bg-zinc-800'
+                          : ' text-zinc-400 hover:bg-zinc-800'
                       }`}
                       onClick={() => setUiScale(s)}
                     >
@@ -6418,14 +6418,14 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Pinned footer: errors and the save state never scroll away */}
-        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-zinc-800 px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between gap-3   px-4 py-3">
           <div className="min-w-0 flex-1">
             {err && <p className="text-xs leading-relaxed text-red-400">{err}</p>}
           </div>
           <div className="flex shrink-0 gap-2">
             <button
               type="button"
-              className="rounded border border-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
+              className="rounded   px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
               onClick={onClose}
             >
               Cancel
@@ -6552,7 +6552,7 @@ function AccessModeControl() {
         </svg>
       </button>
       {open && (
-        <div className="absolute bottom-9 left-0 z-20 w-64 rounded border border-zinc-800 bg-zinc-900 py-1 shadow-lg">
+        <div className="absolute bottom-9 left-0 z-20 w-64 rounded   bg-zinc-900 py-1 shadow-lg">
           {(Object.keys(meta) as AccessMode[]).map((mode) => (
             <button
               key={mode}
@@ -6711,7 +6711,7 @@ function GitChipCluster({
     <span ref={wrapRef} className="relative flex min-w-0 items-center gap-2">
       {/* Primary branch selector: always represents the user's working tree. */}
       <button
-        className="flex shrink-0 items-center gap-1 rounded border border-zinc-700 bg-zinc-800/60 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300 hover:border-zinc-500"
+        className="flex shrink-0 items-center gap-1 rounded   bg-zinc-800/60 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300 hover:border-zinc-500"
         title={
           info.dirty
             ? `Primary working-tree branch. ${info.changed} changed file${info.changed === 1 ? '' : 's'} (${info.untracked} untracked). Click to switch branch.`
@@ -6733,10 +6733,10 @@ function GitChipCluster({
 
       {showAgentBranch && (
         <span
-          className={`flex min-w-0 items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[10px] ${
+          className={`flex min-w-0 items-center gap-1 rounded   px-1.5 py-0.5 font-mono text-[10px] ${
             agentMerged
-              ? 'border-zinc-700 bg-zinc-800/40 text-zinc-400'
-              : 'border-zinc-600 bg-zinc-800/60 text-zinc-300'
+              ? ' bg-zinc-800/40 text-zinc-400'
+              : ' bg-zinc-800/60 text-zinc-300'
           }`}
           title={
             `Agent checkout branch ${agentBranch!.branch}` +
@@ -6755,7 +6755,7 @@ function GitChipCluster({
 
       {/* checkout dropdown (opens upward — the strip is the floor) */}
       {menuOpen && (
-        <div className="absolute bottom-full left-0 z-30 mb-1 w-56 rounded border border-zinc-800 bg-zinc-900 py-1 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)]">
+        <div className="absolute bottom-full left-0 z-30 mb-1 w-56 rounded   bg-zinc-900 py-1 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)]">
           <div className="px-3 pb-1 pt-1.5 font-mono text-[10px] uppercase tracking-wider text-zinc-600">
             branches
           </div>
@@ -6783,7 +6783,7 @@ function GitChipCluster({
             ))}
           </div>
           {lockMutations && (
-            <div className="border-t border-zinc-800 px-3 py-1 font-mono text-[10px] text-zinc-600">
+            <div className="  px-3 py-1 font-mono text-[10px] text-zinc-600">
               {busy ? 'git is running…' : 'agent is working — wait for the turn to end'}
             </div>
           )}
@@ -6791,7 +6791,7 @@ function GitChipCluster({
       )}
 
       <button
-        className="shrink-0 rounded border border-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 hover:border-zinc-500 hover:text-zinc-200"
+        className="shrink-0 rounded   px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 hover:border-zinc-500 hover:text-zinc-200"
         title="Git details and actions"
         aria-label="Git details and actions"
         aria-expanded={detailsOpen}
@@ -6804,8 +6804,8 @@ function GitChipCluster({
       </button>
 
       {detailsOpen && (
-        <div className="absolute bottom-full right-0 z-30 mb-1 w-80 max-w-[calc(100vw-2rem)] rounded border border-zinc-800 bg-zinc-900 p-2 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)]">
-          <div className="mb-2 flex items-center justify-between border-b border-zinc-800 pb-1.5">
+        <div className="absolute bottom-full right-0 z-30 mb-1 w-80 max-w-[calc(100vw-2rem)] rounded   bg-zinc-900 p-2 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)]">
+          <div className="mb-2 flex items-center justify-between   pb-1.5">
             <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400">Git details</span>
             <span className="font-mono text-[10px] text-zinc-500">{info.branch}</span>
           </div>
@@ -6830,7 +6830,7 @@ function GitChipCluster({
               </span>
             )}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-1 border-t border-zinc-800 pt-1.5">
+          <div className="mt-2 flex flex-wrap items-center gap-1   pt-1.5">
             <button className={cmdBtn} disabled={busyAction !== null} title="git status" onClick={() => run('status')}>
               status{busyAction === 'status' && <span className="run-pulse text-amber-300"> ●</span>}
             </button>
@@ -6838,7 +6838,7 @@ function GitChipCluster({
               commit{busyAction === 'commit' && <span className="run-pulse text-amber-300"> ●</span>}
             </button>
             {confirmAction === 'push' ? (
-              <span className="flex items-center gap-1 rounded border border-zinc-700 bg-zinc-800/60 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
+              <span className="flex items-center gap-1 rounded   bg-zinc-800/60 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
                 push to {info.upstream ?? `origin/${info.branch}`}?{' '}
                 <button className="text-blue-400 hover:text-blue-300" title="confirm push" onClick={() => run('push')}>✓</button>
                 <button className="text-zinc-500 hover:text-zinc-300" title="cancel" onClick={() => setConfirmAction(null)}>✕</button>
@@ -6849,7 +6849,7 @@ function GitChipCluster({
               </button>
             )}
             {confirmAction === 'pull' ? (
-              <span className="flex items-center gap-1 rounded border border-zinc-700 bg-zinc-800/60 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
+              <span className="flex items-center gap-1 rounded   bg-zinc-800/60 px-1.5 py-0.5 font-mono text-[10px] text-zinc-300">
                 pull {info.upstream ? `from ${info.upstream}` : '(no upstream)'}?{' '}
                 <button className="text-blue-400 hover:text-blue-300" title="confirm pull" onClick={() => run('pull')}>✓</button>
                 <button className="text-zinc-500 hover:text-zinc-300" title="cancel" onClick={() => setConfirmAction(null)}>✕</button>
@@ -6866,7 +6866,7 @@ function GitChipCluster({
 
       {/* commit popover: message + visible stage-all sweep */}
       {commitOpen && (
-        <div className="absolute bottom-full right-0 z-30 mb-1 w-72 rounded border border-zinc-800 bg-zinc-900 p-2 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)]">
+        <div className="absolute bottom-full right-0 z-30 mb-1 w-72 rounded   bg-zinc-900 p-2 shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)]">
           <input
             autoFocus
             value={commitMsg}
@@ -6879,7 +6879,7 @@ function GitChipCluster({
               }
             }}
             placeholder="commit message"
-            className="w-full rounded border border-zinc-700 bg-zinc-800 px-2 py-1 font-mono text-[11px] text-zinc-200 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
+            className="w-full rounded   bg-zinc-800 px-2 py-1 font-mono text-[11px] text-zinc-200 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none"
           />
           <div className="mt-1.5 flex items-center justify-between gap-2">
             <span className="font-mono text-[10px] text-zinc-500">
@@ -7242,7 +7242,7 @@ function DraftDestinationCard() {
   }
 
   return (
-    <div className="mx-auto mt-3 w-full max-w-md rounded border border-zinc-800 bg-zinc-900/60 px-3 py-2">
+    <div className="mx-auto mt-3 w-full max-w-md rounded   bg-zinc-900/60 px-3 py-2">
       <div className="flex items-center gap-2">
         <label htmlFor="draft-destination" className="shrink-0 text-xs text-zinc-400">
           This chat will be saved to
@@ -7250,7 +7250,7 @@ function DraftDestinationCard() {
         <select
           id="draft-destination"
           aria-label="Save this chat to"
-          className="min-w-0 flex-1 truncate rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-200 focus:border-zinc-500 focus:outline-none"
+          className="min-w-0 flex-1 truncate rounded   bg-zinc-800 px-2 py-1 text-xs text-zinc-200 focus:border-zinc-500 focus:outline-none"
           value={dest}
           onChange={(e) => pick(e.target.value)}
           title={dest || 'Default (no folder)'}
@@ -7271,12 +7271,12 @@ function DraftDestinationCard() {
               title="This switches the branch for every chat sharing this workspace"
               disabled={gitBusy}
               onClick={() => gitMenuOpen ? setGitMenuOpen(false) : void openGitBranches()}
-              className="rounded border border-zinc-800 px-2 py-1 font-mono text-[10px] text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+              className="rounded   px-2 py-1 font-mono text-[10px] text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
             >
               ⎇ {gitBranch}
             </button>
             {gitMenuOpen && (
-              <div role="menu" aria-label="Git branches" className="absolute right-0 top-full z-30 mt-1 max-h-48 min-w-36 overflow-auto rounded border border-zinc-800 bg-zinc-900 p-1 shadow-xl">
+              <div role="menu" aria-label="Git branches" className="absolute right-0 top-full z-30 mt-1 max-h-48 min-w-36 overflow-auto rounded   bg-zinc-900 p-1 shadow-xl">
                 {gitLoading ? <div className="px-2 py-1 text-[10px] text-zinc-500">Loading branches…</div> :
                   gitBranches.map((branch) => (
                     <button
@@ -7297,7 +7297,7 @@ function DraftDestinationCard() {
         )}
         {!remoteAdd && (
           <button
-            className="shrink-0 rounded border border-dashed border-zinc-800 px-2 py-1 text-xs text-zinc-400 hover:border-zinc-500 hover:bg-zinc-800/60 hover:text-zinc-200"
+            className="shrink-0 rounded border border-dashed border-zinc-700 px-2 py-1 text-xs text-zinc-400 hover:border-zinc-500 hover:bg-zinc-800/60 hover:text-zinc-200"
             onClick={() => void addFolder()}
             aria-label={parseNsWorkspace(dest) ? `Add folder on ${devices.find((d) => d.host_id === parseNsWorkspace(dest)?.hostId)?.name ?? 'remote device'}` : 'Add workspace'}
             title={parseNsWorkspace(dest) ? 'Add folder on selected remote device' : 'Add workspace'}
@@ -7307,10 +7307,10 @@ function DraftDestinationCard() {
         )}
       </div>
       {remoteAdd && (
-        <div className="mt-1.5 rounded border border-zinc-700 bg-zinc-800 p-2">
+        <div className="mt-1.5 rounded   bg-zinc-800 p-2">
           <input
             autoFocus
-            className="mb-1.5 w-full rounded border border-zinc-800 bg-zinc-900 px-2 py-1 font-mono text-xs"
+            className="mb-1.5 w-full rounded   bg-zinc-900 px-2 py-1 font-mono text-xs"
             placeholder="folder path on the host, e.g. C:/repos/proj"
             value={remotePath}
             onChange={(e) => setRemotePath(e.target.value)}
@@ -7319,7 +7319,7 @@ function DraftDestinationCard() {
           />
           <div className="flex justify-end gap-1.5">
             <button
-              className="rounded border border-zinc-800 px-2 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-900"
+              className="rounded   px-2 py-0.5 text-[10px] text-zinc-400 hover:bg-zinc-900"
               onClick={() => setRemoteAdd(false)}
             >
               Cancel
@@ -7459,11 +7459,11 @@ export function ChatScopePickers() {
   const downNotes = Object.entries(byProvider).filter(([, pm]) => pm.error)
 
   return (
-    <div className="flex flex-col gap-0.5 border-b border-zinc-800 bg-zinc-900/60 px-4 py-1.5">
+    <div className="flex flex-col gap-0.5   bg-zinc-900/60 px-4 py-1.5">
       <div className="flex items-center gap-2">
         <span className="text-[10px] uppercase tracking-wider text-zinc-600">model</span>
         <select
-          className="min-w-0 max-w-[16rem] flex-1 truncate rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 font-mono text-[11px] text-zinc-200 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+          className="min-w-0 max-w-[16rem] flex-1 truncate rounded   bg-zinc-800 px-1.5 py-0.5 font-mono text-[11px] text-zinc-200 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
           value={`${shownProvider}::${shownModel}`}
           onChange={(e) => applyModel(e.target.value)}
           disabled={locked || saving || noProvider}
@@ -7480,7 +7480,7 @@ export function ChatScopePickers() {
         </select>
         <span className="ml-1 text-[10px] uppercase tracking-wider text-zinc-600">effort</span>
         <select
-          className="rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-[11px] text-zinc-200 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
+          className="rounded   bg-zinc-800 px-1.5 py-0.5 text-[11px] text-zinc-200 focus:border-zinc-500 focus:outline-none disabled:opacity-50"
           value={effort}
           onChange={(e) => applyEffort(e.target.value)}
           disabled={locked || saving || !modelSupportsReasoning(byProvider, model)}
@@ -7491,7 +7491,7 @@ export function ChatScopePickers() {
         </select>
         {isAgentChat && (
           <span
-            className="rounded border border-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400"
+            className="rounded   px-1.5 py-0.5 text-[10px] text-zinc-400"
             title="This chat belongs to a scheduled agent — changes apply to the agent"
           >
             agent
@@ -7785,12 +7785,12 @@ export function ChatPanel() {
         ))}
       </div>
       {error && (
-        <div className="border-t border-red-900 bg-red-950/60 px-4 py-2 text-xs text-red-300">
+        <div className="  border-red-900 bg-red-950/60 px-4 py-2 text-xs text-red-300">
           {error}
         </div>
       )}
       {pendingQuestion && (
-        <div className="border-t border-orange-800/60 px-4 pb-3 pt-3">
+        <div className="  border-orange-800/60 px-4 pb-3 pt-3">
           {/* key: each question mounts a FRESH card. Without it React reuses
               the instance across consecutive questions and any stuck local
               state (submitting, custom text) wedges every later ask. */}
@@ -7798,12 +7798,12 @@ export function ChatPanel() {
         </div>
       )}
       {pendingApproval && pendingApproval.convKey === (conversationId === null ? 'draft' : String(conversationId)) && (
-        <div className="border-t border-orange-800/60 px-4 pb-3 pt-3">
+        <div className="  border-orange-800/60 px-4 pb-3 pt-3">
           <ApprovalCard key={pendingApproval.callId} approval={pendingApproval} />
         </div>
       )}
       {pendingPlanApproval && pendingPlanApproval.convKey === (conversationId === null ? 'draft' : String(conversationId)) && (
-        <div className="border-t border-sky-800/60 px-4 pb-3 pt-3">
+        <div className="  border-sky-800/60 px-4 pb-3 pt-3">
           <PlanApprovalCard key={pendingPlanApproval.callId} pending={pendingPlanApproval} />
         </div>
       )}
@@ -7830,14 +7830,14 @@ export function ChatPanel() {
             Hidden while the model isn't downloaded — Settings owns that. */}
         {ttsReady && (
           <button
-            className={`ml-auto rounded border px-1.5 py-0.5 ${
+            className={`ml-auto rounded   px-1.5 py-0.5 ${
               ttsError
                 ? 'border-red-700 text-red-300'
                 : ttsSpeaking
                   ? 'border-amber-600/70 text-amber-300'
                   : ttsEnabled
-                    ? 'border-zinc-600 text-zinc-200 hover:bg-zinc-800'
-                    : 'border-zinc-800 text-zinc-600 hover:text-zinc-400'
+                    ? ' text-zinc-200 hover:bg-zinc-800'
+                    : ' text-zinc-600 hover:text-zinc-400'
             }`}
             title={
               ttsError
@@ -9409,7 +9409,7 @@ function Composer() {
     >
       {skillMenuOpen && (
         <div className="relative">
-          <div className="absolute bottom-1 left-0 z-10 max-h-56 w-80 overflow-y-auto rounded border border-zinc-800 bg-zinc-900 shadow-lg">
+          <div className="absolute bottom-1 left-0 z-10 max-h-56 w-80 overflow-y-auto rounded   bg-zinc-900 shadow-lg">
             {filteredSkills.length === 0 ? (
               <div className="px-3 py-2 text-xs text-zinc-500">No matching skills</div>
             ) : (
@@ -9438,7 +9438,7 @@ function Composer() {
                 </button>
               ))
             )}
-            <div className="border-t border-zinc-800 px-3 py-1 text-[10px] text-zinc-600">
+            <div className="  px-3 py-1 text-[10px] text-zinc-600">
               ↑↓ navigate · Tab adds · Esc closes — Enter sends your text
             </div>
             <button
@@ -9454,10 +9454,10 @@ function Composer() {
         </div>
       )}
       <div
-        className={`rounded border bg-zinc-800/50 ${
+        className={`rounded   bg-zinc-800/50 ${
           dragOver
             ? 'border-dashed border-blue-500'
-            : 'border-zinc-800 focus-within:border-blue-500'
+            : ' focus-within:border-blue-500'
         }`}
       >
         {/* Staged content lives inside the card: everything the message is
@@ -9470,7 +9470,7 @@ function Composer() {
                   src={img.dataUrl}
                   alt={img.name}
                   title={img.name}
-                  className="h-16 rounded border border-zinc-800"
+                  className="h-16 rounded border border-zinc-700"
                 />
                 <button
                   className="absolute -right-1.5 -top-1.5 h-4 w-4 rounded-full bg-zinc-700 text-[10px] leading-4 text-zinc-300 hover:bg-red-600 hover:text-white"
@@ -9512,7 +9512,7 @@ function Composer() {
             {rejects.map((msg, i) => (
               <p
                 key={`${msg}-${i}`}
-                className="rounded border border-zinc-700 bg-zinc-800/60 px-2 py-1 text-[11px] text-zinc-300"
+                className="rounded   bg-zinc-800/60 px-2 py-1 text-[11px] text-zinc-300"
               >
                 {msg}
               </p>
@@ -9680,14 +9680,14 @@ function Composer() {
           <div className="relative">
             <button
               title={`${queueEchoes.length} queued message${queueEchoes.length === 1 ? '' : 's'} — will land at the next boundary`}
-              className="flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-800/60 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:bg-zinc-800"
+              className="flex items-center gap-1.5 rounded   bg-zinc-800/60 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:bg-zinc-800"
               onClick={() => setQueueOpen((o) => !o)}
             >
               <span className="text-zinc-500">{queueOpen ? '▾' : '▴'}</span>
               queued {queueEchoes.length}
             </button>
             {queueOpen && (
-              <div className="absolute bottom-full right-0 z-30 mb-2 w-72 rounded border border-zinc-800 bg-zinc-900 p-2 shadow-lg">
+              <div className="absolute bottom-full right-0 z-30 mb-2 w-72 rounded   bg-zinc-900 p-2 shadow-lg">
                 {queueEchoes.map((q) => (
                   <div key={q.tempId} className="flex items-center gap-2 py-0.5">
                     <span className="min-w-0 flex-1 truncate text-xs text-zinc-200">
@@ -9717,7 +9717,7 @@ function Composer() {
             right — one hairline-separated row inside the composer card. */}
         {/* Unified toolbar: host + mode on the left, attach/mic/send on the
             right — one hairline-separated row inside the composer card. */}
-        <div className="flex items-center gap-1 border-t border-zinc-800/70 px-1.5 py-1.5">
+        <div className="flex items-center gap-1   px-1.5 py-1.5">
           <AccessModeControl />
           <div className="ml-auto flex items-center gap-1">
             <button
