@@ -4085,18 +4085,29 @@ export function ModelOptions({
   )
 }
 
-/** #51 — hook: the provider-grouped model list shared by both pickers. */
+/** #51 — hook: the provider-grouped model list shared by both pickers.
+
+  activeProvider: the configured active provider from config.json, or ''
+  when none is configured. null = the backend hasn't answered yet (restart,
+  unreachable) — "no provider configured" banners must NOT render on null,
+  or a configured-but-slow local server (llama.cpp) would be told it has no
+  provider (#51 regression: the banner keyed off the /models probe instead
+  of the config). */
 export function useModelList() {
   const [byProvider, setByProvider] = useState<Record<string, ProviderModels>>({})
+  const [activeProvider, setActiveProvider] = useState<string | null>(null)
   const refresh = useCallback(() => {
     listAvailableModels()
-      .then((r) => setByProvider(r.providers))
+      .then((r) => {
+        setByProvider(r.providers)
+        setActiveProvider(r.active_provider || '')
+      })
       .catch(() => {})
   }, [])
   useEffect(() => {
     refresh()
   }, [refresh])
-  return { byProvider, refresh }
+  return { byProvider, activeProvider, refresh }
 }
 
 /** #76 — render the effort levels advertised for the selected model. */
@@ -4186,7 +4197,11 @@ export function DefaultThoughtLevelPicker() {
 export function Sidebar() {
   const { newConversation, workspace, setWorkspace, clearLog, refreshGlobals } = useAgent()
   const globalModel = useAgent((s) => s.globalModel)
-  const [activeProvider, setActiveProvider] = useState('')
+  // null = backend hasn't answered the config probe yet; '' = genuinely no
+  // provider configured. The "add a provider" banner must only render on ''
+  // — a configured llama.cpp server whose /models probe fails or is slow is
+  // not an unconfigured setup.
+  const [activeProvider, setActiveProvider] = useState<string | null>(null)
   // name -> {models, error?} for every configured provider
   const [byProvider, setByProvider] = useState<Record<string, ProviderModels>>({})
   const [savingModel, setSavingModel] = useState(false)
@@ -4365,7 +4380,10 @@ export function Sidebar() {
           </div>
           {savingModel && <p className="mt-1 text-[10px] text-zinc-500" role="status">Saving model…</p>}
           {modelError && <p id="default-model-status" className="mt-1 text-[10px] text-red-400" role="alert">{modelError}</p>}
-          {Object.keys(byProvider).length === 0 && (
+          {/* Keyed on the configured active provider, not the /models probe:
+              a llama.cpp/Ollama server whose catalog endpoint fails or is
+              slow is still a configured setup (#51). */}
+          {activeProvider === '' && (
             <button
               className="mt-1.5 w-full rounded   bg-zinc-800/60 px-2 py-1 text-left text-[10px] leading-relaxed text-zinc-300 hover:border-zinc-500"
               onClick={() => setShowSettings(true)}
@@ -7272,8 +7290,7 @@ export function ChatScopePickers() {
   const globalModel = useAgent((s) => s.globalModel)
   const globalEffort = useAgent((s) => s.globalEffort)
 
-  const { byProvider, refresh } = useModelList()
-
+  const { byProvider, activeProvider, refresh } = useModelList()
   // The conversation row's pinned scope, refreshed on chat switch and after
   // each turn (an agent run may have written through the agent).
   const [rowScope, setRowScope] = useState<{ model: string; effort: string } | null>(null)
@@ -7360,7 +7377,12 @@ export function ChatScopePickers() {
   }
 
   const saving = savingModel || savingEffort
-  const noProvider = Object.keys(byProvider).length === 0
+  // "No provider" means the config has none — not that the /models probe
+  // returned nothing (a configured llama.cpp/Ollama server whose catalog
+  // endpoint errors or is slow is NOT an unconfigured setup). While the
+  // backend hasn't answered yet (activeProvider === null) show nothing:
+  // rendering the banner there would flag a working setup as unconfigured.
+  const noProvider = activeProvider === ''
   const downNotes = Object.entries(byProvider).filter(([, pm]) => pm.error)
 
   return (
