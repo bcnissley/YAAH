@@ -49,6 +49,8 @@ Follow the /implement pipeline:
 On success:
 
 - `gh issue close <n> --comment "Implemented in <commit/PR ref>. <one-line summary>"`
+- Apply the label `agent-review` to the issue so the scheduled reviewer can
+  find and check the work before it's considered fully done.
 
 On blocked / cannot finish (unclear spec, missing info, failing tests you
 can't resolve, an unfilled human decision):
