@@ -4115,6 +4115,14 @@ export function useModelList() {
   useEffect(() => {
     refresh()
   }, [refresh])
+  // Issue #109: a Settings → Providers save changes credentials; every
+  // mounted consumer must re-probe, or its "provider down" optgroups stay
+  // stale after the key is fixed.
+  useEffect(() => {
+    const onProvidersChanged = () => refresh()
+    window.addEventListener('providers-changed', onProvidersChanged)
+    return () => window.removeEventListener('providers-changed', onProvidersChanged)
+  }, [refresh])
   return { byProvider, activeProvider, refresh }
 }
 
@@ -5842,6 +5850,26 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
       // Provider/model changes can affect the defaults inherited by new chats;
       // refresh the sidebar's model and thought-level controls.
       useAgent.getState().refreshGlobals()
+      // Issue #109: credentials may have changed — every useModelList()
+      // consumer re-probes /api/models/available, and latched per-chat
+      // connection-error state (stale displays of turns that failed on the
+      // OLD key) is revalidated: the banner drops, the sidebar red pill
+      // clears. The backend re-reads config on every call, so nothing else
+      // is stale.
+      window.dispatchEvent(new CustomEvent('providers-changed'))
+      // Revalidate latched per-chat connection errors (issue #109): they are
+      // stale displays of turns that failed on the OLD credentials. Drop the
+      // error text and the sidebar's red 'error' finish pill (which keys off
+      // the latch, not a live probe); a genuinely still-broken provider
+      // re-latches on the next turn with the fresh error.
+      useAgent.setState((s) => ({
+        errorByConv: Object.fromEntries(
+          Object.keys(s.errorByConv).map((k) => [k, null]),
+        ),
+        finishedByConv: Object.fromEntries(
+          Object.entries(s.finishedByConv).filter(([, v]) => v !== 'error'),
+        ),
+      }))
       setSaved(true)
       setTimeout(onClose, 600)
     } catch (e) {
@@ -8380,6 +8408,17 @@ function Composer() {
     window.setTimeout(() => {
       setRejects((r) => (r.includes(msg) ? r.filter((x) => x !== msg) : r))
     }, 6000)
+  }, [])
+
+  // Issue #109: a Settings → Providers save means credentials changed; the
+  // failed turn this banner remembers died on the OLD key (the backend
+  // re-reads config per call), so the latch is a stale display. Drop it —
+  // the user can simply send again; if the new key is also broken the next
+  // turn re-latches with the fresh error.
+  useEffect(() => {
+    const onProvidersChanged = () => setTurnErrorByConv({})
+    window.addEventListener('providers-changed', onProvidersChanged)
+    return () => window.removeEventListener('providers-changed', onProvidersChanged)
   }, [])
 
   const loadSkills = useCallback(() => {
