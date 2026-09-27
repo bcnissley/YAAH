@@ -38,6 +38,9 @@ DEFAULTS = {
     "reasoning_effort": "",
     # Agent loop tool-call rounds per turn (Settings → General → Max steps).
     "max_steps": 200,
+    # Per-model step budgets (Settings -> Providers -> each model entry).
+    # The agent loop resolves model entry > provider entry > max_steps.
+    "model_steps": {},
     # Last workspace chosen in the sidebar, so it survives app restarts.
     "last_workspace": "",
     # Interface scale for the whole UI (CSS zoom on the app root). The

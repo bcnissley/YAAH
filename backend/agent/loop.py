@@ -171,6 +171,34 @@ async def _maybe_compact(
     return [result] if result else []
 
 DEFAULT_MAX_STEPS = 200
+
+
+def _resolve_max_steps(cfg: dict, model_override: str | None) -> int:
+    """Step budget for one turn: the model's own entry (config.model_steps)
+    wins, then the legacy per-provider value, then the global; missing or
+    invalid values fall through, and nothing at all means the shipped
+    default. 0 at any level means unlimited and is honored, not skipped."""
+    model = model_override or ""
+    provider = model.partition("::")[0] if "::" in model else ""
+    if not provider:
+        provider = cfg.get("active_provider") or ""
+
+    def _int(v) -> int | None:
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return None
+
+    entry = (cfg.get("model_steps") or {}).get(model)
+    steps = _int(entry) if entry is not None else None
+    if steps is None:
+        prov = (cfg.get("providers") or {}).get(provider) or {}
+        steps = _int(prov.get("max_steps"))
+    if steps is None:
+        steps = _int(cfg.get("max_steps"))
+    return steps if steps is not None else DEFAULT_MAX_STEPS
+
+
 MAX_TOOL_RESULT_CHARS = 20_000
 MAX_AGENTS_NOTES_CHARS = 8_000
 
@@ -1403,21 +1431,9 @@ async def _run_agent_claimed(
     loaded_skills: list[str] = list(invoked)
 
     # Per-turn step budget; 0 or blank means unlimited (Stop button still ends
-    # the turn). Per-provider in Settings (the provider the turn runs on
-    # wins); config.json `max_steps` is the legacy global fallback.
-    try:
-        _cfg_steps = load_config()
-        _prov_name = (
-            (model_override.partition("::")[0] if "::" in model_override else "")
-            or _cfg_steps.get("active_provider")
-        )
-        _prov = (_cfg_steps.get("providers") or {}).get(_prov_name) or {}
-        max_steps = int(
-            _prov.get("max_steps") if _prov.get("max_steps") is not None
-            else _cfg_steps.get("max_steps") or 0
-        )
-    except (TypeError, ValueError):
-        max_steps = DEFAULT_MAX_STEPS
+    # the turn). Per-MODEL first (Settings -> Providers -> each model entry,
+    # issue #111), then the legacy per-provider value, then the global.
+    max_steps = _resolve_max_steps(load_config(), model_override)
 
     try:
         for _step in range(max_steps) if max_steps > 0 else itertools.count():

@@ -1003,6 +1003,9 @@ class ConfigUpdate(BaseModel):
     access_mode: str | None = None
     compaction: dict | None = None
     model_compaction: dict[str, dict] | None = None
+    # Per-model step budgets (issue #111): model id -> steps (0 = unlimited).
+    # Values are validated in the merge (bad entries dropped, not a 422).
+    model_steps: dict[str, object] | None = None
 
 
 @app.post("/api/agent/{conversation_id}")
@@ -1891,6 +1894,8 @@ async def api_get_config():
         },
         # Per-model compaction settings (the per-model Settings editor).
         "model_compaction": cfg.get("model_compaction") or {},
+        # Per-model step budgets (the per-model Settings editor).
+        "model_steps": cfg.get("model_steps") or {},
         # Access mode: ask | plan | full (header control; see
         # PLAN-access-modes.md).
         "access_mode": cfg.get("access_mode", "ask"),
@@ -1980,6 +1985,19 @@ async def api_set_config(body: ConfigUpdate):
                 out["trigger_tokens"] = 0
             merged_m[str(model_id)] = out
         updates["model_compaction"] = merged_m
+    # Per-model step budgets: each value must be an int >= 0 (0 = unlimited);
+    # anything else is dropped rather than persisted raw.
+    msteps = updates.get("model_steps")
+    if isinstance(msteps, dict):
+        merged_s: dict[str, int] = {}
+        for model_id, steps in msteps.items():
+            try:
+                v = int(steps)
+            except (TypeError, ValueError):
+                continue
+            if v >= 0:
+                merged_s[str(model_id)] = v
+        updates["model_steps"] = merged_s
     save_config(updates)
     # Hosting toggles need the mDNS advertiser to follow.
     if isinstance(remote, dict):

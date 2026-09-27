@@ -221,6 +221,8 @@ export interface AgentConfig {
   }
   /** Per-model compaction settings (model id -> settings). */
   model_compaction?: Record<string, { enabled: boolean; trigger_tokens: number }>
+  /** Per-model step budgets (issue #111; model id -> steps, 0 = unlimited). */
+  model_steps?: Record<string, number>
   /** Voice dictation; cloud_api_key arrives masked ("set" | ""). */
   voice?: {
     engine: 'local' | 'cloud'
@@ -272,6 +274,8 @@ export const updateConfig = (
       enabled: boolean | null
       trigger_tokens: number | null
     }>
+    /** Per-model step budgets: authoritative map when present (#111). */
+    model_steps?: Record<string, number>
     voice: {
       engine?: 'local' | 'cloud'
       cloud_endpoint?: string

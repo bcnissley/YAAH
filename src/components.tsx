@@ -5591,17 +5591,20 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<'general' | 'providers' | 'voice' | 'mcp'>('general')
   // Per-model compaction: model id -> settings (per-provider editors).
   const [modelComp, setModelComp] = useState<Record<string, { enabled: boolean; trigger_tokens: number }>>({})
-  // Per-provider agent settings (the provider tab's Agent & context block).
-  const [provMaxSteps, setProvMaxSteps] = useState<Record<string, number | ''>>({})
-  // Editor drafts for the expanded provider: the selected model + field
-  // values, keyed by MODEL ID (each configured model keeps its own settings
-  // in the editor, so switching the dropdown never loses another model's
-  // values). The per-provider fields (max steps) stay provider-keyed.
-  const [agentModelSel, setAgentModelSel] = useState<Record<string, string>>({})
+  // Per-model step budgets (issue #111): model id -> draft ('' = untouched,
+  // saves as the model's explicit 200-default entry only when edited).
+  const [modelSteps, setModelSteps] = useState<Record<string, number | ''>>({})
+  // Editor drafts for the expanded provider: the list of configured models
+  // (each with its OWN compaction + steps, keyed by model id) + models
+  // manually added to a provider's editor (not in the catalog).
   const [compEnabledDraft, setCompEnabledDraft] = useState<Record<string, boolean>>({})
   const [compDraft, setCompDraft] = useState<Record<string, number | ''>>({})
   /** Models manually added to a provider's editor (not in the catalog). */
   const [extraModels, setExtraModels] = useState<Record<string, string[]>>({})
+  /** Models explicitly configured per provider, in order (issue #111: the
+   *  editor renders one entry per model here — unlimited entries). Starts
+   *  with the provider's current model; onAddModel appends. */
+  const [provEntryModels, setProvEntryModels] = useState<Record<string, string[]>>({})
   // Model catalogs per provider (from /api/models/available, fetched once).
   const [providerModels, setProviderModels] = useState<Record<string, string[]>>({})
   // Resolved (detected) context windows per model id, for pre-filling.
@@ -5688,13 +5691,13 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
           setActive(c.active_provider)
           setMaxSteps(c.max_steps ?? '')
           setModelComp(c.model_compaction ?? {})
-          // Per-provider max steps live on each provider entry (Settings
-          // edits them there); legacy blank = fall back to the global.
-          const steps: Record<string, number | ''> = {}
-          for (const [n, p] of Object.entries(c.providers)) {
-            steps[n] = (p as unknown as { max_steps?: number }).max_steps ?? ''
-          }
-          setProvMaxSteps(steps)
+          setModelSteps(
+            Object.fromEntries(
+              Object.entries((c as unknown as { model_steps?: Record<string, number> }).model_steps ?? {}).map(
+                ([m, v]) => [m, v] as const,
+              ),
+            ),
+          )
           setUiScale(Number(c.ui_scale) || 1.0)
           const v = c.voice
           setVoiceEngine(v?.engine === 'cloud' ? 'cloud' : 'local')
@@ -5752,36 +5755,40 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
   const patchProvider = (name: string, patch: Partial<{ api_base: string; model: string; apiKeyInput: string }>) =>
     setProviders((ps) => ({ ...ps, [name]: { ...ps[name], ...patch } }))
 
-  // Per-provider editor hydration: when a provider is expanded (or its
-  // selected model changes), seed that MODEL's drafts from the saved
-  // per-model map — the saved compaction trigger, or the shipped 300k
-  // default. Seeds only blank fields so the user's typing is never
-  // overwritten, and since drafts are model-keyed, another model's values
-  // survive a switch.
+  // Per-provider editor hydration: when a provider is expanded, seed its
+  // entry list (the provider's current model first) and each entry model's
+  // drafts from the saved per-model maps — the saved compaction trigger, or
+  // the shipped 300k default. Seeds only blank fields so the user's typing
+  // is never overwritten; drafts are model-keyed, so values survive edits
+  // to other entries.
   useEffect(() => {
     if (!expanded) return
     const name = expanded
-    const model = (agentModelSel[name] || providers[name]?.model || '').trim()
-    if (!model) return
-    const detected = detectedWindows[model]
-    if (detected === undefined) {
-      getResolvedContextWindow(model)
-        .then((r) => setDetectedWindows((d) => ({ ...d, [model]: r.context_window })))
-        .catch(() => setDetectedWindows((d) => ({ ...d, [model]: null })))
+    const entryModels = (provEntryModels[name] ?? []).length
+      ? provEntryModels[name]
+      : [providers[name]?.model].filter((m): m is string => !!m)
+    setProvEntryModels((s) => (s[name]?.length ? s : { ...s, [name]: entryModels }))
+    for (const model of entryModels) {
+      const detected = detectedWindows[model]
+      if (detected === undefined) {
+        getResolvedContextWindow(model)
+          .then((r) => setDetectedWindows((d) => ({ ...d, [model]: r.context_window })))
+          .catch(() => setDetectedWindows((d) => ({ ...d, [model]: null })))
+      }
+      setCompDraft((s) => {
+        if (s[model] !== undefined && s[model] !== '') return s
+        const saved = modelComp[model]?.trigger_tokens
+        return { ...s, [model]: saved ? saved / 1000 : COMPACTION_DEFAULT_K }
+      })
+      setCompEnabledDraft((s) =>
+        s[model] !== undefined ? s : { ...s, [model]: modelComp[model]?.enabled ?? true },
+      )
+      // modelSteps needs no seeding: a model without an edited draft shows
+      // the 200 default and only writes on change (same '' semantics as
+      // the compaction draft).
     }
-    setCompDraft((s) => {
-      if (s[model] !== undefined && s[model] !== '') return s
-      const saved = modelComp[model]?.trigger_tokens
-      return { ...s, [model]: saved ? saved / 1000 : COMPACTION_DEFAULT_K }
-    })
-    setCompEnabledDraft((s) =>
-      s[model] !== undefined ? s : { ...s, [model]: modelComp[model]?.enabled ?? true },
-    )
-    setProvMaxSteps((s) =>
-      s[name] !== undefined ? s : { ...s, [name]: MAX_STEPS_DEFAULT },
-    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expanded, expanded ? agentModelSel[expanded] : null])
+  }, [expanded])
 
   // Live hotkey capture: the next non-modifier keydown becomes the
   // accelerator. Capture-phase listener so Esc cancels the capture instead
@@ -5873,12 +5880,12 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
           ...(p.apiKeyInput ? { api_key: p.apiKeyInput } : {}),
         }
       }
-      // Per-provider agent settings: steps ride on each provider entry;
-      // compaction goes to the per-model map (the context window is not a
-      // setting — it's detected and shown read-only in the editor).
-      for (const [name, p] of Object.entries(providers)) {
-        const ms = provMaxSteps[name]
-        if (ms !== '' && ms !== undefined) out[name].max_steps = Number(ms)
+      // Per-model agent settings (issue #111): steps + compaction both key
+      // on the model id; the context window is not a setting — it's
+      // detected and shown read-only in the editor.
+      const outSteps: Record<string, number> = {}
+      for (const [model, ms] of Object.entries(modelSteps)) {
+        if (typeof ms === 'number') outSteps[model] = ms
       }
       const outComp: Record<string, { enabled: boolean; trigger_tokens: number }> = { ...modelComp }
       for (const model of new Set([
@@ -5899,6 +5906,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
         providers: out,
         active_provider: active || undefined,
         max_steps: maxSteps === '' ? undefined : Number(maxSteps),
+        model_steps: outSteps,
         model_compaction: outComp,
         ui_scale: uiScale,
         voice: {
@@ -6121,8 +6129,9 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                             onChange={(e) => patchProvider(name, { apiKeyInput: e.target.value })}
                             aria-label={`${name} API key`}
                           />
-                          {/* Per-provider agent & context: max steps + the
-                              per-model context/compaction editors. */}
+                          {/* Per-provider agent & context: one entry per
+                              configured model, each with its own max steps
+                              + compaction (issue #111). */}
                           <AgentContextPerProvider
                             name={name}
                             models={[
@@ -6131,46 +6140,37 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
                                 (id) => !(providerModels[name] ?? []).includes(id),
                               ),
                             ]}
-                            modelSel={agentModelSel[name] ?? ''}
-                            onModelSel={(m) => {
-                              // Model switch: the new model's drafts re-hydrate
-                              // from the saved maps; the previous model's drafts
-                              // stay in their model-keyed slots, so nothing is
-                              // lost when switching back or saving.
-                              setAgentModelSel((s) => ({ ...s, [name]: m }))
-                            }}
+                            entries={(provEntryModels[name] ?? []).map((m) => ({
+                              model: m,
+                              steps: modelSteps[m] ?? '',
+                              onSteps: (v: number | '') =>
+                                setModelSteps((s) => ({ ...s, [m]: v })),
+                              compEnabled: compEnabledDraft[m] ?? true,
+                              onCompEnabled: (v: boolean) =>
+                                setCompEnabledDraft((s) => ({ ...s, [m]: v })),
+                              compK: compDraft[m] ?? COMPACTION_DEFAULT_K,
+                              onCompK: (v: number | '') =>
+                                setCompDraft((s) => ({ ...s, [m]: v })),
+                              ctxAuto: detectedWindows[m] ?? null,
+                            }))}
                             onAddModel={(id) => {
-                              // Register the model in this provider's dropdown
-                              // (extraModels is additive; deduped by React key
-                              // below) and make it the one being configured.
+                              // Append a new entry (unlimited entries allowed)
+                              // and register it in the dropdown when it's not
+                              // in the catalog.
+                              setProvEntryModels((s) => ({
+                                ...s,
+                                [name]: (s[name] ?? []).includes(id) ? (s[name] ?? []) : [...(s[name] ?? []), id],
+                              }))
                               setExtraModels((s) => ({
                                 ...s,
                                 [name]: (s[name] ?? []).includes(id) ? (s[name] ?? []) : [...(s[name] ?? []), id],
                               }))
-                              setAgentModelSel((s) => ({ ...s, [name]: id }))
                             }}
-                            currentModel={p.model}
-                            maxSteps={provMaxSteps[name] === undefined ? MAX_STEPS_DEFAULT : provMaxSteps[name]}
-                            onMaxSteps={(v) => setProvMaxSteps((s) => ({ ...s, [name]: v }))}
-                            ctxAuto={(() => {
-                              const m = agentModelSel[name] || p.model
-                              return m ? (detectedWindows[m] ?? null) : null
-                            })()}
-                            compEnabled={(() => {
-                              const m = agentModelSel[name] || p.model
-                              return m ? compEnabledDraft[m] : undefined
-                            })()}
-                            onCompEnabled={(v) => {
-                              const m = agentModelSel[name] || p.model
-                              if (m) setCompEnabledDraft((s) => ({ ...s, [m]: v }))
-                            }}
-                            compK={(() => {
-                              const m = agentModelSel[name] || p.model
-                              return m ? (compDraft[m] ?? COMPACTION_DEFAULT_K) : COMPACTION_DEFAULT_K
-                            })()}
-                            onCompK={(v) => {
-                              const m = agentModelSel[name] || p.model
-                              if (m) setCompDraft((s) => ({ ...s, [m]: v }))
+                            onRemoveModel={(id) => {
+                              setProvEntryModels((s) => ({
+                                ...s,
+                                [name]: (s[name] ?? []).filter((m) => m !== id),
+                              }))
                             }}
                             compactionDefaultK={COMPACTION_DEFAULT_K}
                             maxStepsDefault={MAX_STEPS_DEFAULT}
