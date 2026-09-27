@@ -3538,8 +3538,12 @@ function ConversationList({
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <DeviceGroups devices={devices} workspaces={workspaces} conversations={remoteConvs} onChange={refresh} onOpenConversation={openConversation} adding={addingDevice} setAdding={setAddingDevice} />
-      {orderedGroups.length > 0 && <h2 className="mb-1 px-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-zinc-500">This device</h2>}
+      {/* Remote devices render at the bottom of the sidebar so the local
+          device's chats stay first — the local device is implied by default.
+          The "This device" heading was dropped: the top groups ARE this
+          device, and the heading only made sense as a separator from remote
+          devices, which now sit below (issue: blank space above "This
+          device"). */}
       {orderedGroups.map(({ ws, items }) => {
         const key = expandKey(ws.path ?? '')
         const isExpanded = expanded[key] ?? true
@@ -3654,6 +3658,10 @@ function ConversationList({
       {convs.length === 0 && groups.length === 0 && (
         <p className="px-2 py-3 text-center text-[11px] text-zinc-600">No conversations yet.</p>
       )}
+
+      {/* Remote devices at the bottom of the sidebar: only rendered when one
+          is configured, so nothing reserves space otherwise. */}
+      <DeviceGroups devices={devices} workspaces={workspaces} conversations={remoteConvs} onChange={refresh} onOpenConversation={openConversation} adding={addingDevice} setAdding={setAddingDevice} />
 
       {/* in-app dialogs (replace native confirm/prompt/alert) */}
       {agentsDialog && (
