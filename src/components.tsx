@@ -8447,9 +8447,12 @@ function Composer() {
       const lastLine = lines[lines.length - 1]
       const lineIdxBefore = lines.length - 1
       // Wrap-walk the last line of `before` to find the token's line + x.
+      // An empty line (token at input start or right after a newline) must
+      // stay at x=0: split(/ /) on '' yields one empty word, and measuring
+      // it as a space adds a phantom leading space width (~half a character).
       let x = 0
       let line = lineIdxBefore
-      for (const word of lastLine.split(/ /)) {
+      for (const word of lastLine === '' ? [] : lastLine.split(/ /)) {
         const w = measure(word === '' ? ' ' : word)
         const space = measure(' ')
         if (x > 0 && x + w > wrapWidth) {
