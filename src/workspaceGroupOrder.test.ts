@@ -52,4 +52,40 @@ describe('sortWorkspaceGroups (#91)', () => {
 
     expect(sortWorkspaceGroups(afterTouch).map((g) => g.ws.path)).toEqual(['C:/b', 'C:/a'])
   })
+
+  it('#42: manual position fully replaces the activity sort once any workspace is placed', () => {
+    const groups = [
+      group('C:/b', '2026-09-23 10:00:00', '2026-09-23 10:00:00'),
+      group('C:/a', '2026-09-23 11:00:00', '2026-09-23 11:00:00'),
+      group('C:/c', null, '2026-09-23 12:00:00'),
+    ]
+    // C:/a was dragged to the top (position 0); everything else follows in
+    // placed-then-never-placed order, ignoring last_opened_at entirely.
+    const withPositions = groups.map((g, i) =>
+      i === 1 ? { ...g, ws: { ...g.ws, position: 0 } } : g,
+    )
+
+    expect(sortWorkspaceGroups(withPositions).map((g) => g.ws.path)).toEqual([
+      'C:/a',
+      'C:/b',
+      'C:/c',
+    ])
+  })
+
+  it('#42: Default stays first even under manual order', () => {
+    const groups = [
+      group('C:/a', '2026-09-23 11:00:00', '2026-09-23 11:00:00'),
+      group(null, null, '2026-09-23 12:00:00'),
+      group('C:/b', null, '2026-09-23 10:00:00'),
+    ]
+    const withPositions = groups.map((g, i) =>
+      i === 0 ? { ...g, ws: { ...g.ws, position: 0 } } : g,
+    )
+
+    expect(sortWorkspaceGroups(withPositions).map((g) => g.ws.path)).toEqual([
+      null,
+      'C:/a',
+      'C:/b',
+    ])
+  })
 })

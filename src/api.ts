@@ -435,6 +435,8 @@ export interface WorkspaceRow {
   last_opened_at: string | null
   exists: boolean
   conversation_count: number
+  /** #42: manual sidebar position; null = never manually ordered. */
+  position?: number | null
   owner_id?: string | null
   device_status?: 'local' | 'online' | 'offline' | 'cached' | 'error'
 }
@@ -449,6 +451,13 @@ export const addWorkspace = (path: string, ownerId?: string) =>
   api<WorkspaceRow>('/api/workspaces', {
     method: 'POST',
     body: JSON.stringify({ path, owner_id: ownerId }),
+  })
+
+/** #42: persist the sidebar's manual workspace order (local rows only). */
+export const reorderWorkspaces = (orderedIds: number[]) =>
+  api<{ ok: boolean }>('/api/workspaces/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ ordered_ids: orderedIds }),
   })
 
 /** Git state for a draft's chosen workspace, before a conversation exists. */

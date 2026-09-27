@@ -352,6 +352,29 @@ async def api_list_local_workspaces():
     ]
 
 
+class ReorderWorkspaces(BaseModel):
+    ordered_ids: list[int]
+
+
+@app.post("/api/workspaces/reorder")
+async def api_reorder_workspaces(body: ReorderWorkspaces):
+    """Persist the sidebar's manual workspace order (#42).
+
+    Local registry rows only: remote devices order their own sidebar.
+    Unknown ids are ignored (the client sends its full visible list).
+    """
+    import backend.db.database as db_mod
+
+    local_ids = {
+        r["id"] for r in await list_workspaces()
+        if remote_mod.parse_ns(r["path"]) is None
+    }
+    await db_mod.reorder_workspaces(
+        [wid for wid in body.ordered_ids if wid in local_ids]
+    )
+    return {"ok": True}
+
+
 @app.post("/api/workspaces")
 async def api_add_workspace(body: NewWorkspace):
     """Register a folder on its explicit owner, or locally for local paths."""

@@ -61,6 +61,7 @@ import {
   ttsDownload,
   imageUrl,
   listWorkspaces,
+  reorderWorkspaces,
   listLocalWorkspaces,
   addWorkspace,
   getWorkspaceGitBranches,
@@ -105,6 +106,7 @@ import { useStickToBottom } from './useStickToBottom'
 import { classifyDrop } from './dropFiles'
 import { parseModelScope } from './modelScope'
 import { sortWorkspaceGroups } from './workspaceGroupOrder'
+import { nearestRowByY, reorderIds } from './workspaceReorder'
 import { extractValidTokens, menuQuery, completeToken, deriveInvokedSkills, LEADING_SLASH_RE, type TokenSpan } from './skillTokens'
 
 // ---------------------------------------------------------------- code views
@@ -3374,6 +3376,13 @@ function ConversationList({
   const [moveTarget, setMoveTarget] = useState<{ id: number; title: string; workspace: string | null } | null>(null)
   const [removeWsTarget, setRemoveWsTarget] = useState<WorkspaceRow | null>(null)
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null)
+  // #42: pointer-event drag reordering of workspace groups. HTML5 DnD never
+  // fires its drop in WebView2 (two attempts on the original branch), so the
+  // drag runs on mousedown/mousemove/mouseup against the header rows.
+  const [dragWs, setDragWs] = useState<{ id: number; y: number } | null>(null)
+  const [dropTargetId, setDropTargetId] = useState<number | null>(null)
+  const wsHeaderRefs = useRef(new Map<number, HTMLElement>())
+  const dragMovedRef = useRef(false)
   const devices = useRemote((s) => s.devices)
   const refreshDevices = useRemote((s) => s.refreshDevices)
 
@@ -3485,6 +3494,56 @@ function ConversationList({
     }
   }
   const orderedGroups = sortWorkspaceGroups(groups)
+
+  // #42: manual order persistence + drag handling over the workspace headers.
+  const orderedLocalIds = orderedGroups
+    .filter((g) => g.ws.id !== -1 && !g.ws.owner_id)
+    .map((g) => g.ws.id)
+  const applyDragOrder = (targetId: number) => {
+    if (dragWs === null || !dragMovedRef.current) return
+    const next = reorderIds(orderedLocalIds, dragWs.id, targetId)
+    if (next.join() === orderedLocalIds.join()) return
+    // Optimistic: stamp positions locally so the sort switches to manual
+    // order immediately, then persist.
+    setWorkspaces((rows) =>
+      rows.map((r) => {
+        const idx = next.indexOf(r.id)
+        return idx === -1 ? r : { ...r, position: idx }
+      }),
+    )
+    reorderWorkspaces(next).catch(() => {})
+  }
+
+  const beginWorkspaceDrag = (e: React.PointerEvent, wsId: number) => {
+    if (e.button !== 0) return
+    dragMovedRef.current = false
+    setDragWs({ id: wsId, y: e.clientY })
+  }
+  useEffect(() => {
+    if (dragWs === null) return
+    const onMove = (e: PointerEvent) => {
+      dragMovedRef.current = true
+      setDragWs((d) => (d ? { ...d, y: e.clientY } : d))
+      const rects = new Map<number, { top: number; bottom: number }>()
+      for (const [id, el] of wsHeaderRefs.current) {
+        const r = el.getBoundingClientRect()
+        rects.set(id, { top: r.top, bottom: r.bottom })
+      }
+      setDropTargetId(nearestRowByY(rects, e.clientY))
+    }
+    const onUp = () => {
+      if (dropTargetId !== null) applyDragOrder(dropTargetId)
+      setDragWs(null)
+      setDropTargetId(null)
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+  })
+
   for (const g of orderedGroups) {
     g.items.sort((a, b) => b.updated_at.localeCompare(a.updated_at))
   }
@@ -3550,6 +3609,8 @@ function ConversationList({
         const key = expandKey(ws.path ?? '')
         const isExpanded = expanded[key] ?? true
         const isActiveWs = (ws.path ?? '') === (workspace || '')
+        const isDragging = dragWs?.id === ws.id
+        const isDropTarget = dropTargetId === ws.id && dragWs !== null && dragWs.id !== ws.id
         // Agent chats pin above the workspace's normal chats (issue #41);
         // the 5-cap and show-more stepping apply to normal chats only.
         const wsAgents = items.filter((c) => c.chat_type === 'agent')
@@ -3577,16 +3638,30 @@ function ConversationList({
             <div className="  pt-2 first:border-t-0 first:pt-0">
             <div className="group flex items-center gap-0.5 rounded px-1 py-1 hover:bg-zinc-800/60">
               <button
+                ref={(el) => {
+                  if (el && ws.id !== -1 && !ws.owner_id) wsHeaderRefs.current.set(ws.id, el)
+                  else wsHeaderRefs.current.delete(ws.id)
+                }}
+                onPointerDown={(e) => {
+                  if (ws.id !== -1 && !ws.owner_id) beginWorkspaceDrag(e, ws.id)
+                }}
                 className={`min-w-0 flex-1 truncate text-left font-mono text-[11px] font-semibold uppercase tracking-wider ${
                   isActiveWs ? 'text-zinc-100' : 'text-zinc-400'
-                } hover:text-zinc-200`}
+                } hover:text-zinc-200 ${isDragging ? 'opacity-60' : ''} ${
+                  isDropTarget ? 'ring-1 ring-blue-500' : ''
+                } ${ws.id !== -1 && !ws.owner_id ? 'cursor-grab active:cursor-grabbing' : ''}`}
                 title={
                   ws.path === null
                     ? 'No root directory — conversations without a workspace'
                     : parseNsWorkspace(ws.path)?.path || ws.path
                 }
                 aria-expanded={isExpanded}
-                onClick={() => toggleGroup(ws.path)}
+                onClick={() => {
+                  // A drag ends as pointerup on this button — don't also
+                  // toggle collapse / start a new chat (#42).
+                  if (dragMovedRef.current) return
+                  toggleGroup(ws.path)
+                }}
               >
                 <span className="min-w-0 truncate">
                   {ws.label}

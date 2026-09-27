@@ -243,6 +243,14 @@ async def get_db() -> aiosqlite.Connection:
         # #93: per-agent opt-in letting a scheduled run block on ask_user.
         # Default 0 preserves the unattended contract for existing agents.
         await db.execute("ALTER TABLE agents ADD COLUMN allow_ask_user INTEGER NOT NULL DEFAULT 0")
+    cur = await db.execute("PRAGMA table_info(workspaces)")
+    ws_cols = {r[1] for r in await cur.fetchall()}
+    if "position" not in ws_cols:
+        # #42: manual sidebar order, stamped only by explicit user drags.
+        # NULL = never manually ordered — the activity sort applies. No
+        # backfill: a legacy `position = id` backfill made old workspaces
+        # read as arbitrarily hand-ordered.
+        await db.execute("ALTER TABLE workspaces ADD COLUMN position INTEGER")
     # Revision tokens change for every host-side metadata/transcript edit,
     # including legacy local routes, not just commits through the new API.
     await db.executescript("""
@@ -378,7 +386,7 @@ async def list_workspaces() -> list[dict]:
     db = await get_db()
     try:
         cur = await db.execute(
-            "SELECT w.id, w.path, w.label, w.last_opened_at,"
+            "SELECT w.id, w.path, w.label, w.last_opened_at, w.position,"
             " (SELECT COUNT(*) FROM conversations c"
             "  WHERE c.workspace IS w.path) AS conversation_count"
             " FROM workspaces w"
@@ -390,6 +398,25 @@ async def list_workspaces() -> list[dict]:
             else:
                 r["exists"] = os.path.isdir(r["path"])
         return rows
+    finally:
+        await db.close()
+
+
+async def reorder_workspaces(ordered_ids: list[int]) -> None:
+    """Stamp the user's manual sidebar order (#42).
+
+    Only the listed ids get positions (list index = position). Unlisted
+    rows stay NULL — 'never manually ordered' — and NULL must never be
+    backfilled, or rows the user never dragged read as hand-placed.
+    """
+    db = await get_db()
+    try:
+        await db.execute("BEGIN IMMEDIATE")
+        for i, wid in enumerate(ordered_ids):
+            await db.execute(
+                "UPDATE workspaces SET position = ? WHERE id = ?", (i, wid)
+            )
+        await db.commit()
     finally:
         await db.close()
 

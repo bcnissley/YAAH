@@ -12,6 +12,7 @@ from backend.db.database import (
     list_conversations,
     list_workspaces,
     migrate_workspaces,
+    reorder_workspaces,
     upsert_workspace,
 )
 
@@ -82,6 +83,58 @@ async def test_upsert_dedupes_case_and_slashes(tmp_path):
         )
         == 1
     )
+
+
+@pytest.mark.asyncio
+async def test_reorder_workspaces_stamps_positions_42():
+    ws_a = await upsert_workspace("C:\\proj\\OrdA")
+    ws_b = await upsert_workspace("C:\\proj\\OrdB")
+    ws_c = await upsert_workspace("C:\\proj\\OrdC")
+    default = await get_workspace_by_path(None)
+
+    await reorder_workspaces([ws_c["id"], ws_a["id"], ws_b["id"]])
+
+    rows = {r["id"]: r for r in await list_workspaces()}
+    assert rows[ws_c["id"]]["position"] == 0
+    assert rows[ws_a["id"]]["position"] == 1
+    assert rows[ws_b["id"]]["position"] == 2
+    # Default is always first in the sidebar and never needs a position.
+    assert rows[default["id"]]["position"] is None
+
+
+@pytest.mark.asyncio
+async def test_reorder_workspaces_leaves_unlisted_rows_unordered_42():
+    """A workspace the user never dragged stays NULL ('never manually
+    ordered') and must not inherit a stale id-order backfill."""
+    ws_a = await upsert_workspace("C:\\proj\\ReoA")
+    ws_b = await upsert_workspace("C:\\proj\\ReoB")
+
+    await reorder_workspaces([ws_a["id"]])
+
+    rows = {r["id"]: r for r in await list_workspaces()}
+    assert rows[ws_a["id"]]["position"] == 0
+    assert rows[ws_b["id"]]["position"] is None
+
+
+@pytest.mark.asyncio
+async def test_reorder_api_persists_order_42(tmp_path):
+    real = tmp_path / "ReoApi"
+    real.mkdir()
+    ws = await upsert_workspace(str(real))
+    transport = ASGITransport(app=__import__("backend.main", fromlist=["app"]).app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        r = await client.post(
+            "/api/workspaces/reorder", json={"ordered_ids": [ws["id"]]}
+        )
+        assert r.status_code == 200
+        rows = {w["id"]: w for w in (await client.get("/api/workspaces")).json()}
+        assert rows[ws["id"]]["position"] == 0
+
+        # Unknown ids are ignored, not 404 — the sidebar sends its full list.
+        r2 = await client.post(
+            "/api/workspaces/reorder", json={"ordered_ids": [ws["id"], 999999]}
+        )
+        assert r2.status_code == 200
 
 
 @pytest.mark.asyncio
