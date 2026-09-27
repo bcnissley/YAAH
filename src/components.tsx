@@ -3583,19 +3583,21 @@ function ConversationList({
                 aria-expanded={isExpanded}
                 onClick={() => toggleGroup(ws.path)}
               >
-                {ws.label}
-                {ws.path !== null && !ws.exists && (
-                  <span className="ml-1 text-amber-500" title="Folder not found on disk">
-                    ⚠
-                  </span>
-                )}
+                <span className="min-w-0 truncate">
+                  {ws.label}
+                  {ws.path !== null && !ws.exists && (
+                    <span className="ml-1 text-amber-500" title="Folder not found on disk">
+                      ⚠
+                    </span>
+                  )}
+                </span>
+                <span
+                  className="ml-1.5 shrink-0 font-mono text-[10px] tracking-normal text-zinc-600"
+                  title={`${items.length} conversation${items.length === 1 ? '' : 's'} in this workspace`}
+                >
+                  {items.length}
+                </span>
               </button>
-              <span
-                className="mr-1 font-mono text-[10px] text-zinc-600"
-                title={`${items.length} conversation${items.length === 1 ? '' : 's'} in this workspace`}
-              >
-                {items.length}
-              </span>
               {/* Agents dialogue (issue #41): on-hover silhouette on each
                   workspace — lists the workspace's agents + new agent. */}
               <button
