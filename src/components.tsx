@@ -15,7 +15,6 @@ import {
   type AgentEvent,
   cancelAgent,
   queueMessage,
-  removeQueued,
   steerAgent,
   getFileTree,
   getFileChildren,
@@ -7975,7 +7974,6 @@ function Composer() {
   const markQueuedAsNormal = useAgent((s) => s.markQueuedAsNormal)
   const steering = useAgent((s) => s.steerByConv[bufKeyForQueue] ?? false)
   const setSteerFlag = useAgent((s) => s.setSteer)
-  const [queueOpen, setQueueOpen] = useState(false)
   const pendingQueueAutosendRef = useRef<Record<string, Array<{ id: number; text: string; skills?: string[]; images?: string[] }>>>({})
   // Buffer key of the conversation with a send closure in flight (issue #10:
   // several chats can run at once — gates and the Stop button are scoped to
@@ -9670,49 +9668,6 @@ function Composer() {
             e.target.value = ''
           }}
         />
-        {/* Queued messages chip (B redesign): the old pill that popped in
-            above the composer duplicated the transcript bubble's amber
-            "queued · lands next boundary" label AND shifted layout mid-run.
-            Now the affordance lives in the toolbar as a quiet chip next to
-            the send button — same count, same expandable per-message rows
-            with remove, but nothing pops in and the composer never resizes. */}
-        {queueEchoes?.length ? (
-          <div className="relative">
-            <button
-              title={`${queueEchoes.length} queued message${queueEchoes.length === 1 ? '' : 's'} — will land at the next boundary`}
-              className="flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-800/60 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-zinc-400 hover:bg-zinc-800"
-              onClick={() => setQueueOpen((o) => !o)}
-            >
-              <span className="text-zinc-500">{queueOpen ? '▾' : '▴'}</span>
-              queued {queueEchoes.length}
-            </button>
-            {queueOpen && (
-              <div className="absolute bottom-full right-0 z-30 mb-2 w-72 rounded border border-zinc-800 bg-zinc-900 p-2 shadow-lg">
-                {queueEchoes.map((q) => (
-                  <div key={q.tempId} className="flex items-center gap-2 py-0.5">
-                    <span className="min-w-0 flex-1 truncate text-xs text-zinc-200">
-                      {q.text}
-                    </span>
-                    <button
-                      title="Discard queued message"
-                      className="rounded px-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300"
-                      onClick={() => {
-                        dropQueuedEcho(bufKeyForQueue, q.tempId)
-                        setQueueEcho(
-                          bufKeyForQueue,
-                          (queueEchoes ?? []).filter((x) => x.id !== q.id),
-                        )
-                        void removeQueued(conversationId ?? 0, q.id).catch(() => {})
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : null}
         {/* Unified toolbar: host + mode on the left, attach/mic/send on the
             right — one hairline-separated row inside the composer card. */}
         {/* Unified toolbar: host + mode on the left, attach/mic/send on the
