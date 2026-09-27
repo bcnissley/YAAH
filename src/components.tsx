@@ -91,6 +91,8 @@ import {
   releaseRemoteDeviceLease,
   commitRemoteDeviceSnapshot,
   syncPendingRemoteDeviceCommits,
+  getSandboxStatus,
+  type SandboxStatus,
 } from './api'
 import { buildMessages, lastAssistantId, tapeQuestionAction, useAgent, useError, useAgentBranch, useStatus, TOOL_OUTPUT_CAP, type AccessMode, type ChatMessage, type Toast, type PendingApproval, type PendingPlanApproval, type PendingQuestion, type ToolCall, type SubAgentRun, type SubAgentToolCall, type AgentBranchInfo } from './store'
 import { useUpdateCheck } from './update'
@@ -5495,6 +5497,69 @@ export function AgentChatLiveFollow() {
   return null
 }
 
+/** Settings card: the Windows Sandbox toggle (issue #112). Mirrors the
+ *  saved `sandbox.enabled` config flag and probes /api/sandbox/status for
+ *  feature availability; when the Windows feature is missing it renders the
+ *  enable command and the BIOS virtualization hint. Toggling off only flips
+ *  the config flag — it never disables the Windows feature destructively. */
+export function SandboxSettingsCard() {
+  const [enabled, setEnabled] = useState(true)
+  const [status, setStatus] = useState<SandboxStatus | null>(null)
+
+  useEffect(() => {
+    getConfig()
+      .then((c) => setEnabled(c.sandbox?.enabled !== false))
+      .catch(() => {})
+    getSandboxStatus()
+      .then(setStatus)
+      .catch(() => setStatus(null))
+  }, [])
+
+  const toggle = async (next: boolean) => {
+    setEnabled(next)
+    try {
+      await updateConfig({ sandbox: { enabled: next } })
+    } catch {
+      setEnabled(!next)
+    }
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <label className="flex items-center gap-2 text-xs text-zinc-300">
+        <input
+          type="checkbox"
+          className="accent-blue-600"
+          checked={enabled}
+          onChange={(e) => void toggle(e.target.checked)}
+        />
+        Windows Sandbox
+      </label>
+      <p className="text-[10px] leading-relaxed text-zinc-600">
+        Disposable Windows VMs the agent can start for live verification and isolated GUI work.
+        Turning this off only stops the agent from using the sandbox — it never disables the
+        Windows feature itself.
+      </p>
+      {status && !status.available && (
+        <div className="space-y-1 rounded   bg-amber-500/10 p-2 text-[10px] leading-relaxed text-amber-300">
+          <p>
+            Windows Sandbox is not enabled in Windows. Run this in an elevated PowerShell and
+            reboot:
+          </p>
+          <code className="block font-mono text-amber-200">
+            {status.enable_command ||
+              "Enable-WindowsOptionalFeature -Online -FeatureName 'Containers-DisposableClientVM' -All"}
+          </code>
+          <p className="text-amber-300/90">
+            {status.bios_hint ||
+              'This also requires virtualization to be enabled in the BIOS/UEFI (Intel VT-x / AMD-V).'}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** Settings card: the GLOBAL scheduled-run retry preference (issue #41). */
 function AgentsSettingsSection() {
   const [rc, setRc] = useState('2')
@@ -6472,6 +6537,10 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
 
             {activeTab === 'general' && (
               <>
+                <SettingsCard title="Windows Sandbox" className="col-span-2">
+                  <SandboxSettingsCard />
+                </SettingsCard>
+
                 <SettingsCard title="Remote hosting" className="col-span-2">
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs text-zinc-300">

@@ -997,6 +997,9 @@ class ConfigUpdate(BaseModel):
     reasoning_effort: str | None = None
     voice: dict | None = None
     remote: dict | None = None
+    # Windows Sandbox toggle (issue #112): only "enabled" is user-editable
+    # from Settings; the rest of the block merges through untouched.
+    sandbox: dict | None = None
     ui_scale: float | None = None
     context_window_overrides: dict[str, int | None] | None = None
     model_context: dict[str, dict[str, int | None]] | None = None
@@ -1882,6 +1885,8 @@ async def api_get_config():
         # LAN hosting block. The passphrase is stored plaintext by design
         # (same posture as provider keys) and shown only in this app's UI.
         "remote": cfg.get("remote") or {},
+        # Windows Sandbox block (Settings toggles sandbox.enabled, #112).
+        "sandbox": cfg.get("sandbox") or {},
         # Per-model context-window overrides (Settings edits these).
         "context_window_overrides": cfg.get("context_window_overrides") or {},
         # Per-model context windows (the per-model Settings editor).
@@ -1920,6 +1925,16 @@ async def api_set_config(body: ConfigUpdate):
         existing = load_config().get("remote") or {}
         merged = {**existing, **remote}
         updates["remote"] = merged
+    # Windows Sandbox block merges the same way (#112): a Settings save that
+    # only touches enabled must not reset memory_mb / vgpu / etc. The toggle
+    # never disables the Windows feature itself — only the agent's use of it.
+    sandbox = updates.get("sandbox")
+    if isinstance(sandbox, dict):
+        existing = load_config().get("sandbox") or {}
+        merged_sb = {**existing, **sandbox}
+        if "enabled" in merged_sb:
+            merged_sb["enabled"] = bool(merged_sb["enabled"])
+        updates["sandbox"] = merged_sb
     # Interface scale is clamped to the shipped range (Settings offers
     # 100/110/125/150%; anything wilder would break the compact layout).
     if "ui_scale" in updates:
@@ -2008,6 +2023,32 @@ async def api_set_config(body: ConfigUpdate):
         else:
             discovery.stop_advertising()
     return {"ok": True}
+
+
+@app.get("/api/sandbox/status")
+async def api_sandbox_status():
+    """Feature availability + config state for the Settings toggle (#112).
+
+    `available` reflects the Windows feature (WindowsSandbox.exe present),
+    `enabled` the user toggle; when the feature is missing the enable command
+    and a BIOS virtualization hint travel along for the UI to render.
+    """
+    from backend.agent import sandbox
+
+    from backend.agent.config import load_config
+
+    status = sandbox.status_sync()
+    if not status.get("available"):
+        status["enable_command"] = (
+            "Enable-WindowsOptionalFeature -Online -FeatureName "
+            "'Containers-DisposableClientVM' -All"
+        )
+        status["bios_hint"] = (
+            "Windows Sandbox additionally requires virtualization to be "
+            "enabled in the BIOS/UEFI (Intel VT-x / AMD-V); the VM will not "
+            "start otherwise, even with the Windows feature installed."
+        )
+    return status
 
 
 class ModelPick(BaseModel):

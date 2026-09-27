@@ -244,6 +244,17 @@ export interface AgentConfig {
     passphrase: string
     display_name: string
   }
+  /** Windows Sandbox block (#112); Settings toggles only `enabled`. */
+  sandbox?: {
+    enabled: boolean
+    toolkit_dir?: string
+    networking?: string
+    memory_mb?: number
+    vgpu?: string
+    map_workspace?: boolean
+    startup_timeout?: number
+    auto_reboot_on_crash?: boolean
+  }
 }
 
 export const getConfig = () => api<AgentConfig>('/api/config')
@@ -292,6 +303,9 @@ export const updateConfig = (
       passphrase?: string
       display_name?: string
     }
+    sandbox?: {
+      enabled?: boolean
+    }
   }>,
 ) =>
   api<{ ok: boolean }>('/api/config', {
@@ -315,6 +329,20 @@ export interface ProviderPreset {
 
 export const getProviders = () =>
   api<Record<string, ProviderPreset>>('/api/providers')
+
+/** Windows Sandbox feature/config state for the Settings toggle (#112).
+ *  When the Windows feature is missing, `enable_command` and `bios_hint`
+ *  carry the guidance the UI renders instead of a working toggle. */
+export interface SandboxStatus {
+  available: boolean
+  enabled: boolean
+  running: boolean
+  toolkit_host?: string
+  enable_command?: string
+  bios_hint?: string
+}
+export const getSandboxStatus = () => api<SandboxStatus>('/api/sandbox/status')
+
 
 /** Per-provider model listing, with the error when a provider is unreachable. */export interface ProviderModelInfo {
   id: string
