@@ -6987,27 +6987,21 @@ function ContextChip({ info }: { info: { tokens: number; window: number | null; 
   const compaction = useCompactionConfig()
   if (!info) return null
   const windowTokens = info.window
-  // The dial is ALWAYS drawn — a known window scales it to the model's
-  // real capacity; an unknown one scales to the 120k dumb-zone mark, so
-  // the gauge still shows position (and warns at 100%). Nothing about
-  // "unknown" hides the graphic; it only changes what 100% means.
-  const scale = windowTokens ?? DUMB_ZONE_TOKENS
+  // The dial ALWAYS scales out of 200k, regardless of the model's context
+  // window — one fixed ruler so the graphic means the same thing for every
+  // model. The window stays in the tooltip and the text readout. Fill
+  // keeps the safe green color until a threshold band is crossed.
+  const scale = 200_000
   const frac = Math.min(1, info.tokens / scale)
   // Absolute compaction threshold (pure token value, no window fraction).
   const trigger = compaction.enabled && compaction.trigger_tokens > 0 ? compaction.trigger_tokens : null
   const triggerFrac = trigger !== null ? Math.min(1, trigger / scale) : null
   const dumbFrac = DUMB_ZONE_TOKENS / scale
-  // With a known window smaller than 120k the zone tick lands past full —
-  // drop it (the whole dial is the zone; fill color goes red on its own).
   const dumbVisible = dumbFrac < 1
   const fill = contextDialColor(info.tokens, trigger, dumbVisible)
   const pct = windowTokens ? ` (${Math.round((info.tokens / windowTokens) * 100)}% of window)` : ''
-  const dumbLine =
-    windowTokens
-      ? windowTokens > DUMB_ZONE_TOKENS
-        ? `dumb zone from ${fmtTok(DUMB_ZONE_TOKENS)} (${Math.round(dumbFrac * 100)}%)`
-        : `whole dial is dumb zone (window < ${fmtTok(DUMB_ZONE_TOKENS)})`
-      : `dumb zone at full dial (window unknown — scale is ${fmtTok(DUMB_ZONE_TOKENS)} tok)`
+  const dumbLine = `dumb zone from ${fmtTok(DUMB_ZONE_TOKENS)} (${Math.round(dumbFrac * 100)}% of dial)`
+  const dialLine = `dial scaled to ${fmtTok(scale)} tok (fixed, model-independent)`
   // Arc geometry: a 24x24 viewBox dial, ring from 12 o'clock clockwise.
   const r = 8.5
   const c = 2 * Math.PI * r
@@ -7027,6 +7021,7 @@ function ContextChip({ info }: { info: { tokens: number; window: number | null; 
         windowTokens
           ? [
               `${info.tokens.toLocaleString()} / ${windowTokens.toLocaleString()} tokens${pct}`,
+              dialLine,
               trigger !== null
                 ? `compaction at ${fmtTok(trigger)} tok (history rewritten past this)`
                 : 'compaction off',
@@ -7034,6 +7029,10 @@ function ContextChip({ info }: { info: { tokens: number; window: number | null; 
             ].join('\n')
           : [
               `${info.tokens.toLocaleString()} tokens (unknown context window — set an override in Settings)`,
+              dialLine,
+              trigger !== null
+                ? `compaction at ${fmtTok(trigger)} tok (history rewritten past this)`
+                : 'compaction off',
               dumbLine,
             ].join('\n')
       }
