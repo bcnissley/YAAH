@@ -16,6 +16,7 @@ from backend._version import __version__
 from backend.db.database import init_db
 
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
@@ -1000,6 +1001,10 @@ class ConfigUpdate(BaseModel):
     # Windows Sandbox toggle (issue #112): only "enabled" is user-editable
     # from Settings; the rest of the block merges through untouched.
     sandbox: dict | None = None
+    # Semantic-memory plugin toggle (opt-in, off by default): only
+    # "enabled" is user-editable from Settings; the rest of the block
+    # merges through untouched.
+    memory_plugin: dict | None = None
     ui_scale: float | None = None
     context_window_overrides: dict[str, int | None] | None = None
     model_context: dict[str, dict[str, int | None]] | None = None
@@ -1887,6 +1892,9 @@ async def api_get_config():
         "remote": cfg.get("remote") or {},
         # Windows Sandbox block (Settings toggles sandbox.enabled, #112).
         "sandbox": cfg.get("sandbox") or {},
+        # Semantic-memory plugin block (Settings toggles
+        # memory_plugin.enabled).
+        "memory_plugin": cfg.get("memory_plugin") or {},
         # Per-model context-window overrides (Settings edits these).
         "context_window_overrides": cfg.get("context_window_overrides") or {},
         # Per-model context windows (the per-model Settings editor).
@@ -1935,6 +1943,16 @@ async def api_set_config(body: ConfigUpdate):
         if "enabled" in merged_sb:
             merged_sb["enabled"] = bool(merged_sb["enabled"])
         updates["sandbox"] = merged_sb
+    # Semantic-memory plugin block merges the same way: a Settings
+    # save that only touches enabled must not reset top_k /
+    # sleep_interval_hours.
+    memplug = updates.get("memory_plugin")
+    if isinstance(memplug, dict):
+        existing = load_config().get("memory_plugin") or {}
+        merged_mp = {**existing, **memplug}
+        if "enabled" in merged_mp:
+            merged_mp["enabled"] = bool(merged_mp["enabled"])
+        updates["memory_plugin"] = merged_mp
     # Interface scale is clamped to the shipped range (Settings offers
     # 100/110/125/150%; anything wilder would break the compact layout).
     if "ui_scale" in updates:

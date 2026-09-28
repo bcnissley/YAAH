@@ -100,6 +100,18 @@ DEFAULTS = {
         "retry_count": 2,
         "retry_backoff_minutes": 5,
     },
+    # Mnemosyne semantic-memory plugin (opt-in, OFF by default): when
+    # enabled, turn-start recall queries the project's and the global
+    # semantic bank and injects a merged snapshot INSTEAD OF the full
+    # MEMORY.md index; turn-end retention conservatively stores durable
+    # facts; consolidation runs opportunistically in a background thread.
+    # Data lives under ~/.yaah/mnemosyne/ (or $MNEMOSYNE_DATA_DIR).
+    # See backend/agent/mnemosyne_plugin.py.
+    "memory_plugin": {
+        "enabled": False,
+        "top_k": 8,
+        "sleep_interval_hours": 6.0,
+    },
     # Windows Sandbox integration (backend/agent/sandbox.py): disposable
     # test VMs for live verification + a persistent dev toolkit mounted
     # read/write into every sandbox (installs there persist to the host).

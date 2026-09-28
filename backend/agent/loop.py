@@ -252,19 +252,31 @@ def _agents_notes(workspace: str) -> str:
     )
 
 
-def _memory_notes(workspace: str) -> str:
-    """Persistent-memory block: the project's MEMORY.md index plus the
-    save/read/delete guidance. Empty for a fresh project (no memories
-    yet) and swallowed on any error — optional context must never break
-    a turn. Remote sessions keep their memories client-local: the tools
-    resolve slugs against the CLIENT's memory root, so injection is the
-    same block either way."""
+def _memory_notes(user_text: str, workspace: str) -> tuple[str, dict | None]:
+    """Persistent-memory block, plus an optional visualizer event.
+
+    When the Mnemosyne semantic-memory plugin is enabled (Settings,
+    opt-in), a semantic snapshot replaces the full MEMORY.md index
+    injection; otherwise the legacy index. Returns (block, event) — the
+    event is None unless the plugin produced recall results. Empty for a
+    fresh project (no memories yet) and swallowed on any error — optional
+    context must never break a turn. Remote sessions keep their memories
+    client-local: the tools resolve slugs against the CLIENT's memory
+    root, so injection is the same block either way."""
+    # Mnemosyne semantic-memory plugin (opt-in, off by default).
+    try:
+        from backend.agent import mnemosyne_plugin
+
+        if mnemosyne_plugin.is_enabled():
+            return mnemosyne_plugin.recall_block(user_text, workspace)
+    except Exception:  # noqa: BLE001
+        pass
     from backend.agent import memory
 
     try:
-        return memory.index_for_prompt(workspace)
+        return memory.index_for_prompt(workspace), None
     except Exception:  # noqa: BLE001
-        return ""
+        return "", None
 
 
 def _computer_use_prompt() -> str:
@@ -1342,9 +1354,14 @@ async def _run_agent_claimed(
 
     # Persistent per-project memory: the saved-memory index travels with
     # the workspace across conversations, so read it fresh each turn too.
-    memory_notes = _memory_notes(workspace)
+    # When the Mnemosyne plugin is enabled, this is a semantic snapshot
+    # instead of the full index — and its recall event goes to the
+    # visualizer so the memory step is real, not decorative.
+    memory_notes, memory_recall_event = _memory_notes(user_text, workspace)
     if memory_notes:
         system_prompt = f"{system_prompt}\n\n---\n\n{memory_notes}"
+    if memory_recall_event is not None:
+        yield _ndjson(memory_recall_event)
 
     # Plan mode tells the model what it cannot do, so it plans instead of
     # hitting blocked-tool errors all turn.
@@ -1703,6 +1720,18 @@ async def _run_agent_claimed(
                 if file_summary:
                     await _persist_file_change_summary(conversation_id, file_summary)
                     yield _ndjson({"type": "file_changes", **file_summary})
+                # Mnemosyne semantic-memory plugin (opt-in, off by default):
+                # conservatively retain durable facts from this turn. Only
+                # the user's words are mined — never the assistant's, so
+                # assistant wording can never mint an unsupported "fact".
+                # No-op when disabled; best-effort — retention must never
+                # break a turn.
+                try:
+                    from backend.agent import mnemosyne_plugin
+
+                    mnemosyne_plugin.retain_turn(user_text, workspace)
+                except Exception:  # noqa: BLE001
+                    pass
                 yield _ndjson({"type": "done"})
                 return
 

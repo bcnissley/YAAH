@@ -5561,6 +5561,53 @@ export function SandboxSettingsCard() {
   )
 }
 
+/** Settings card: the Mnemosyne semantic-memory plugin toggle (opt-in,
+ *  OFF by default). When enabled, turn-start recall queries the project's
+ *  and the global semantic bank and injects a merged snapshot INSTEAD OF
+ *  the full MEMORY.md index; turn-end retention conservatively stores
+ *  durable facts; consolidation runs opportunistically in a background
+ *  thread. Data lives under ~/.yaah/mnemosyne/ (or $MNEMOSYNE_DATA_DIR).
+ *  The Markdown memory files and tools keep working either way. */
+export function MemorySettingsCard() {
+  const [enabled, setEnabled] = useState(false)
+
+  useEffect(() => {
+    getConfig()
+      .then((c) => setEnabled(c.memory_plugin?.enabled === true))
+      .catch(() => {})
+  }, [])
+
+  const toggle = async (next: boolean) => {
+    setEnabled(next)
+    try {
+      await updateConfig({ memory_plugin: { enabled: next } })
+    } catch {
+      setEnabled(!next)
+    }
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <label className="flex items-center gap-2 text-xs text-zinc-300">
+        <input
+          type="checkbox"
+          className="accent-blue-600"
+          checked={enabled}
+          onChange={(e) => void toggle(e.target.checked)}
+        />
+        Semantic memory (Mnemosyne)
+      </label>
+      <p className="text-[10px] leading-relaxed text-zinc-600">
+        Replaces the full MEMORY.md index injection with semantic recall over a
+        project bank and a global bank. The agent remembers durable facts across
+        turns (explicit "remember this", preferences, conventions) and
+        consolidates them in the background. Off by default; the Markdown
+        memory files keep working either way.
+      </p>
+    </div>
+  )
+}
+
 /** Settings card: the GLOBAL scheduled-run retry preference (issue #41). */
 function AgentsSettingsSection() {
   const [rc, setRc] = useState('2')
@@ -6540,6 +6587,10 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
               <>
                 <SettingsCard title="Windows Sandbox" className="col-span-2">
                   <SandboxSettingsCard />
+                </SettingsCard>
+
+                <SettingsCard title="Semantic memory" className="col-span-2">
+                  <MemorySettingsCard />
                 </SettingsCard>
 
                 <SettingsCard title="Remote hosting" className="col-span-2">

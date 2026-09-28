@@ -255,6 +255,12 @@ export interface AgentConfig {
     startup_timeout?: number
     auto_reboot_on_crash?: boolean
   }
+  /** Mnemosyne semantic-memory plugin; Settings toggles only `enabled`. */
+  memory_plugin?: {
+    enabled: boolean
+    top_k?: number
+    sleep_interval_hours?: number
+  }
 }
 
 export const getConfig = () => api<AgentConfig>('/api/config')
@@ -304,6 +310,9 @@ export const updateConfig = (
       display_name?: string
     }
     sandbox?: {
+      enabled?: boolean
+    }
+    memory_plugin?: {
       enabled?: boolean
     }
   }>,

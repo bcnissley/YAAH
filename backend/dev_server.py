@@ -17,4 +17,12 @@ os.environ.setdefault("YAAH_CONFIG_PATH", str(_repo_data / "dev-config.json"))
 import uvicorn
 
 if __name__ == "__main__":
-    uvicorn.run("backend.main:app", reload=True, port=8765)
+    import asyncio
+    import sys
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    # NOTE: The Vite dev proxy forwards /api/* to 127.0.0.1:8765. Keep the
+    # backend on the loopback interface during development; LAN mode uses the
+    # packaged server instead.
+    uvicorn.run("backend.main:app", host="127.0.0.1", port=8765, reload=False)
+

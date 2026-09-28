@@ -25,6 +25,7 @@ COLLECTS=(
   --collect-all httpx --collect-all httpcore
   --collect-all curl_cffi
   --collect-all sherpa_onnx
+  --collect-all mnemosyne
   --hidden-import mcp --hidden-import mcp.client.stdio
   --hidden-import mcp.client.session --hidden-import mcp.types
 )

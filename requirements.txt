@@ -39,3 +39,7 @@ comtypes>=1.4.0; sys_platform == "win32"
 Pillow>=11.0; sys_platform == "win32"
 pytest>=8.3.0
 pytest-asyncio>=0.24.0
+# Mnemosyne semantic-memory plugin (opt-in, off by default).
+# The [embeddings] extra (fastembed + sqlite-vec) enables true semantic
+# recall; the base package alone still recalls through FTS.
+mnemosyne-memory[embeddings]>=3.15.1
